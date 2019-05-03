@@ -1,0 +1,49 @@
+#link
+name root
+dens 1
+size 8 8 0.5
+cpos 1.0 6.4 0.0
+invisible
+#link
+name motor
+dens 0.25
+size 1 0.5 0.5
+prnt root
+cpos -0.25 0.0 0.0
+ppos 0 5 0
+angl 1
+type powered -10
+#link
+name top
+dens 3
+size 6 0.8 0.5
+prnt motor
+cpos 2.8 0 0
+ppos 0.75 0 0
+angl -0.5
+#link
+name bottom
+dens 3
+size 6 0.8 0.5
+prnt top
+cpos 2.8 0 0
+ppos -2.8 0 0
+#string
+lnka top
+lnkb bottom
+posa 0 0 0
+posb 0 0 0
+rest 5
+stif 0.05
+#spline
+prnt bottom
+type bspline
+ppos -3.0 0 0
+-6 2.2 0
+-4 0 0
+0 -0.8 0
+5.5 0 0
+9.5 3 0
+5 2 0
+0 0.8 0
+-5 2 0

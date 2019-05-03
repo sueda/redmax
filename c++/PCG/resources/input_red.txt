@@ -1,0 +1,23 @@
+#link
+name root
+dens 1
+size 8 8 0.5
+cpos 1.0 6.4 0.0
+invisible
+#link
+name top
+dens 3
+size 6 0.8 0.5
+prnt root
+cpos 1 1.5 0
+ppos 0 0 0
+angl .707
+type hinge 0 1 0
+#link
+name bottom
+dens 3
+size 6 0.8 0.5
+prnt top
+cpos 2.8 0 0
+ppos -2.8 0 0
+type hinge 0 1 0

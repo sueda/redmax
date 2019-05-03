@@ -1,0 +1,28 @@
+#options
+simt redCGnomat
+#link
+name top
+dens 3
+size 3 0.8 0.5
+ppos 0 0 0
+cpos -1.4 0 0
+angl 1.707
+type hinge 0 0 1
+#link
+name middle
+dens 3
+size 3 0.8 0.5
+prnt top
+ppos 1.4 0 0
+cpos -1.4 0 0
+angl 0
+type hinge 0 0 1
+#spline
+prnt middle
+type bspline_open
+ppos -3.0 0 0
+-4 -4 0
+-3 -3 0
+-2 -2 0
+-1 -1 0
+0 0 0 

@@ -1,0 +1,53 @@
+Links are created one by one with respect to a parent link
+The first link should not have a parent link and will act as the grounded link
+Links must be created in order (you cannot attach a link to one that does not exist yet)
+To specify a linkage in input.txt follow the format below
+#link
+name string			# required
+dens double			# required - the density g/(cm*cm)
+size double double double		# required
+prnt string			# if this is left out, or left blank, this link will be a root linkage- there should only be one root
+cpos double double double		# required, if the block does not have a parent then this defines the global position of the link
+ppos double double double		# translates the joint position from the origin of the parent link
+angl double			# defined as a multiple of pi, e.g. <angl 0.5> will produce a 90 degree clockwise rotation
+type TJype			# defaults to ball joint
+<invisible>			# if this token appears the block will be set to invisible (in the link-by-link scheme often the root link should be invisible)
+<physics>			# if physics appears on a line the corresponding linkage will have a disconnected inertial block
+angl double			# if defined after the physics token this will rotate the inertial block
+axis double double double			# axis of rotation
+dirn				# direction of effect
+cpos double double double		# if defined after the physics token this will translate the inertial block
+stif				# joint stiffness
+damp				# joint damping
+bdmp				# body damping
+
+#spring
+lnka string			# required
+lnkb string			# required
+posa double double double			# required, defaults to zero (center of mass)
+posb double double double			# required, defaults to zero (center of mass)
+rest double			# defaults to current distance (calculated on the fly)
+stif double			# defaults to 0
+damp double			# defaults to 0
+
+#closejoint
+lnka string			# required
+lnkb string			# required
+posa double double double			# required, defaults to zero (center of mass)
+posb double double double			# required, defaults to zero (center of mass)
+axis double double double			# axis of rotation
+rest double			# rest angle
+stif double			# defaults to 0
+damp double			# defaults to 0
+
+#springpoint
+lnka string			# required
+posa double double double			# required, defaults to zero (center of mass)
+axis double double double			# axis of rotation
+stif double			# defaults to 0
+
+#spline 			# currently only supports one spline****
+prnt string			# required, every spline must be matched to a point on a joint
+type string			# defaults to cubic b-spline
+ppos double double double		# translates the ciritical position from the origin of the parent link
+double double double			# adds a critical point to the spline definition -- must be in order

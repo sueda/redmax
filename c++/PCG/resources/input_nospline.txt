@@ -1,0 +1,49 @@
+#link
+name root
+mass 1
+size 8 8
+cpos 1.0 6.4 0.0
+invisible
+#link
+name motor
+mass 0.25
+size 1 0.5
+prnt root
+cpos -0.25 0.0 0.0
+ppos 0 5 0
+angl 1
+type powered -10
+#link
+name top
+mass 3
+size 6 0.8
+prnt motor
+cpos 2.8 0 0
+ppos 0.75 0 0
+angl -0.5
+physics
+angl 0.35
+cpos 1 1 0
+#link
+name bottom
+mass 3
+size 6 0.8
+prnt top
+cpos 2.8 0 0
+ppos -2.8 0 0
+physics
+angl 0.65
+cpos 1 -1 0
+#spline
+prnt bottom
+type bspline
+ppos -3.0 0 0
+0 0 0
+0 0 0
+0 0 0
+0 0 0
+0 0 0
+0 0 0
+0 0 0
+0 0 0
+0 0 0

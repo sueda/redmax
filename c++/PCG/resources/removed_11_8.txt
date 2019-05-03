@@ -1,0 +1,112 @@
+			//E_wji.block<3, 3>(0, 0) = child->E_wi0.block<3, 3>(0, 0);
+			//E_wji.block<3, 1>(0, 3) = (child->E_wi0.block<3, 3>(0, 0)*j->childPos + child->E_wi0.block<3, 1>(0, 3));
+			//E_wji(3, 3) = 1.0;
+			//LS->joints[jindex]->E_ji = Rigid::inverse(E_wji)*child->E_wi0;
+			//LS->joints[jindex]->E_ij = Rigid::inverse(LS->joints[jindex]->E_ji);
+			//LS->joints[jindex]->ad_ji = Rigid::adjoint(LS->joints[jindex]->E_ji);
+			//LS->joints[jindex]->ad_ij = Rigid::adjoint(LS->joints[jindex]->E_ij);
+
+			////// transform from the current joint to the parent joint
+			////LS->joints[jindex]->E_pj_ij = Eigen::Matrix4d::Identity();
+			////LS->joints[jindex]->E_pj_ij.block<3, 1>(0, 3) = parent->joint->childPos - j->parentPos;
+			////
+			////// transform from the parent block to the current joint
+			////E_wjp.block<3, 3>(0, 0) = parent->E_wi0.block<3, 3>(0, 0);
+			////E_wjp.block<3, 1>(0, 3) = -(parent->E_wi0.block<3, 3>(0, 0)*j->parentPos + parent->E_wi0.block<3, 1>(0, 3));
+			////E_wjp(3, 3) = 1.0;
+			////E_wji.block<3, 3>(0, 0) = child->E_wi0.block<3, 3>(0, 0);
+			////E_wji.block<3, 1>(0, 3) = (child->E_wi0.block<3, 3>(0, 0)*j->childPos + child->E_wi0.block<3, 1>(0, 3));
+			////E_wji(3, 3) = 1.0;
+			////LS->joints[jindex]->E_jp0 = Rigid::inverse(E_wjp)*parent->E_wi0;
+			////LS->joints[jindex]->E_pj0 = Rigid::inverse(LS->joints[jindex]->E_jp0);
+			////LS->joints[jindex]->ad_jp0 = Rigid::adjoint(LS->joints[jindex]->E_jp0);
+
+			////// transform from the current block to its joint
+			////LS->joints[jindex]->E_ji = Eigen::Matrix4d::Identity();
+			////LS->joints[jindex]->E_ji.block<3, 1>(0, 3) = j->childPos;
+			////LS->joints[jindex]->E_ij = Rigid::inverse(LS->joints[jindex]->E_ji);
+			////LS->joints[jindex]->ad_ij = Rigid::adjoint(LS->joints[jindex]->E_ij);
+			////LS->joints[jindex]->ad_ji = Rigid::adjoint(LS->joints[jindex]->E_ji);
+
+			//E_wjp.block<3, 3>(0, 0) = parent->E_wi0.block<3, 3>(0, 0);
+			//E_wjp.block<3, 1>(0, 3) = parent->E_wi0.block<3, 3>(0, 0)*j->parentPos + parent->E_wi0.block<3, 1>(0, 3);
+			//E_wjp(3, 3) = 1.0;
+
+			//LS->joints[jindex]->E_jp0 = Rigid::inverse(E_wjp)*child->E_wi0;
+			//LS->joints[jindex]->E_pj0 = Rigid::inverse(LS->joints[jindex]->E_jp0);
+			//LS->joints[jindex]->ad_jp0 = Rigid::adjoint(LS->joints[jindex]->E_jp0);
+
+			//LS->joints[jindex]->E_pj0_j0 = 
+
+			//temp_ji = Rigid::inverse(j->E_pj0) * Rigid::inverse(parent->E_wi0) * child->E_wi0;
+
+			//temp_ji = j->E_jp0 * Rigid::inverse(parent->E_wi0) * child->E_wi0;
+			//LS->joints[jindex]->E_ji = j->E_jp0 * Rigid::inverse(parent->E_wi0) * child->E_wi0;
+			
+			
+			
+			
+			
+			
+			
+				////// transform from the parent block to the current joint
+			////E_wjp.block<3, 3>(0, 0) = Eigen::Matrix3d::Identity();
+			////E_wjp.block<3, 1>(0, 3) = -j->parentPos;
+			////E_wjp(3, 3) = 1.0;
+			//////E_wji.block<3, 3>(0, 0) = child->E_wi0.block<3, 3>(0, 0);
+			//////E_wji.block<3, 1>(0, 3) = (child->E_wi0.block<3, 3>(0, 0)*j->childPos + child->E_wi0.block<3, 1>(0, 3));
+			//////E_wji(3, 3) = 1.0;
+			////LS->joints[jindex]->E_jp0 = Rigid::inverse(E_wjp);
+			////LS->joints[jindex]->E_pj0 = Rigid::inverse(LS->joints[jindex]->E_jp0);
+			////LS->joints[jindex]->ad_jp0 = Rigid::adjoint(LS->joints[jindex]->E_jp0);
+
+			////// transform from the current block to its joint
+			////LS->joints[jindex]->E_ji = Eigen::Matrix4d::Identity();
+			////LS->joints[jindex]->E_ji.block<3, 1>(0, 3) = j->childPos;
+			////LS->joints[jindex]->E_ij = Rigid::inverse(LS->joints[jindex]->E_ji);
+			////LS->joints[jindex]->ad_ij = Rigid::adjoint(LS->joints[jindex]->E_ij);
+			////LS->joints[jindex]->ad_ji = Rigid::adjoint(LS->joints[jindex]->E_ji);
+
+			
+			
+			//temp_ji = Rigid::inverse(j->E_pj0) * child->E_wi0;
+
+			//temp_ji = j->E_jp0 * child->E_wi0;
+			//LS->joints[jindex]->E_ji = j->E_jp0 * child->E_wi0;
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+		//E_wji.block<3, 3>(0, 0) = child->E_wi0.block<3, 3>(0, 0);
+		//E_wji.block<3, 1>(0, 3) = (child->E_wi0.block<3, 3>(0, 0)*j->childPos + child->E_wi0.block<3, 1>(0, 3));
+		//E_wji(3, 3) = 1.0;
+		//LS->joints[jindex]->E_ji = Rigid::inverse(E_wji)*child->E_wi0;
+		//LS->joints[jindex]->E_ij = Rigid::inverse(LS->joints[jindex]->E_ji);
+		//LS->joints[jindex]->ad_ji = Rigid::adjoint(LS->joints[jindex]->E_ji);
+		//LS->joints[jindex]->ad_ij = Rigid::adjoint(LS->joints[jindex]->E_ij);
+
+		//// define the local, constant E_ji
+		//Eigen::Matrix4d display_E_ji = Eigen::Matrix4d::Identity();
+		//display_E_ji.block<3, 1>(0, 3) = -LS->joints[jindex]->childPos;
+		//LS->joints[jindex]->E_ji = child->iToD*display_E_ji;
+		//LS->joints[jindex]->E_ij = Rigid::inverse(LS->joints[jindex]->E_ji);
+		//LS->joints[jindex]->ad_ij0 = Rigid::adjoint(LS->joints[jindex]->E_ij);
+
+		//std::cout << LS->joints[jindex]->childName << std::endl;
+		//std::cout << temp << std::endl;
+		//std::cout << E_wjp << std::endl;
+		//std::cout << E_wji << std::endl;
+		//std::cout << LS->joints[jindex]->E_pj_ij << std::endl;
+		//std::cout << LS->joints[jindex]->E_pj0 << std::endl;
+		//std::cout << LS->joints[jindex]->ad_jp0 << std::endl;
+		//std::cout << LS->joints[jindex]->E_jp0 << std::endl;
+		//std::cout << LS->joints[jindex]->E_ji << std::endl;
+		//std::cout << LS->joints[jindex]->ad_ij << std::endl;
+		//std::cout << temp_ji << std::endl;
+		//std::cout << std::endl

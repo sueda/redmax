@@ -1,0 +1,17 @@
+#link
+name top
+dens 3
+size 6 0.8 0.5
+prnt 
+cpos 0 6.4 0
+ppos 1 1.5 0
+type ball
+angl 0.707
+#link
+name bottom
+dens 3
+size 6 0.8 0.5
+prnt top
+cpos 2.8 0 0
+ppos -2.8 0 0
+type ball
