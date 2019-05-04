@@ -6,5 +6,9 @@
 
 Source folders:
 - `c++`: C++ implementation including Projected Block Jacobi Preconditioner
-- `matlab`: Object-oriented MATLAB implementation with many features, including Bilateral Staggered Projections
 - `matlab-simple`: Simpler object-oriented MATLAB implementation for getting started
+- `matlab`: Object-oriented MATLAB implementation with many features, including:
+  - Recursive hybrid dynamics (Featherstone's algorithm) for comparison
+  - Time integration using `ode45` or `euler`
+  - Frictional dynamics with Bilateral Staggered Projections
+  - Spline curve and surface joints [Lee and Terzopoulos 2008]
