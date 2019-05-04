@@ -68,12 +68,24 @@ function [t,y] = euler(scene)
 nr = redmax.Scene.countR();
 body0 = scene.bodies{1};
 joint0 = scene.joints{1};
+% Allocate t and y
+% t(k) is the time at step k
+% y(k,:) = [q;qdot]' is the position and velocity at step k
 h = scene.hEuler;
 t = scene.tspan(1) : h : scene.tspan(2);
 y = zeros(length(t),2*nr);
 y1 = joint0.gatherDofs();
 y(1,:) = y1;
+% Integrate
 for k = 2 : length(t)
+	% Mm: maximal mass matrix
+	% fm: maximal force vector (eg gravity)
+	% Km: maximal stiffness matrix (eg springs, unused in matlab-simple)
+	% Dm: maximal damping matrix (eg body damping)
+	% fr: reduced force vector (eg external joint torques)
+	% Kr: reduced stiffness matrix (eg joint stiffness)
+	% Dr: reduced damping matrix (eg joint damping)
+	% J, Jdot: Jacobian and its time derivative
 	[Mm,fm] = body0.computeMassGrav(scene.grav);
 	[Km,Dm] = body0.computeForceDamping();
 	[fr,Kr] = joint0.computeForceStiffness();

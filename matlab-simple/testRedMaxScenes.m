@@ -3,12 +3,12 @@ function scene = testRedMaxScenes(sceneID)
 
 scene = redmax.Scene();
 
-density = 1.0;
 switch(sceneID)
 	case -1
 		scene.name = 'Simpler serial chain';
 		sides = [10 1 1];
 		nbodies = 2;
+		density = 1.0;
 		scene.waxis = nbodies*5*[-1 1 -1 1 -2 0];
 		for i = 1 : nbodies
 			scene.bodies{i} = redmax.BodyCuboid(density,sides); %#ok<*SAGROW>
@@ -32,6 +32,7 @@ switch(sceneID)
 		scene.name = 'Simple serial chain';
 		sides = [10 1 1];
 		nbodies = 5;
+		density = 1.0;
 		scene.waxis = nbodies*5*[-1 1 -0.1 0.1 -2 0];
 		for i = 1 : nbodies
 			scene.bodies{i} = redmax.BodyCuboid(density,sides); %#ok<*SAGROW>
@@ -57,6 +58,7 @@ switch(sceneID)
 	case 1
 		scene.name = 'Different revolute axes';
 		sides = [10 1 1];
+		density = 1.0;
 		scene.waxis = [-20 20 -20 20 -20 5];
 		scene.bodies{1} = redmax.BodyCuboid(density,sides);
 		scene.bodies{2} = redmax.BodyCuboid(density,sides);
@@ -80,6 +82,7 @@ switch(sceneID)
 		%  X---Z---Y    joint axes shown
 		%  |       |
 		%  |       |
+		density = 1.0;
 		scene.waxis = [-15 15 -15 15 -10 20];
 		scene.bodies{1} = redmax.BodyCuboid(density,[1  1 10]);
 		scene.bodies{2} = redmax.BodyCuboid(density,[1 20  1]);

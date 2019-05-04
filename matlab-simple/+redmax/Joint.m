@@ -15,7 +15,6 @@ classdef (Abstract) Joint < handle
 		qddot    % Acceleration
 		qInit    % Initial position (for joint stiffness)
 		tau      % Joint torque
-		tauCon   % Constraint torque
 		Kr       % Joint stiffness
 		Dr       % Joint damping
 		S        % Jacobian
@@ -24,15 +23,13 @@ classdef (Abstract) Joint < handle
 		V        % Twist at parent joint
 		Vdot     % Acceleration at parent joint
 		E_pj     % Transform of this joint wrt parent joint
-		E_pj0    % Transform when q is zero
+		E_pj0    % Transform when q is zero (initial transform)
 		E_jp     % Transform of parent joint wrt this joint
 		Ad_jp    % Adjoint of E_jp
 		E_wj     % Transform of this joint wrt world
-		contacts % Internal contacts
 		next     % Forward recursive ordering
 		prev     % Reverse recursive ordering
 		idxR     % Reduced indices
-		idxT     % Tangent matrix indices
 	end
 	
 	%%
@@ -56,7 +53,6 @@ classdef (Abstract) Joint < handle
 			this.qdot = zeros(ndof,1);
 			this.qddot = zeros(ndof,1);
 			this.tau = zeros(ndof,1);
-			this.tauCon = zeros(ndof,1);
 			this.Kr = 0;
 			this.Dr = 0;
 			this.S = zeros(6,ndof);
@@ -64,7 +60,6 @@ classdef (Abstract) Joint < handle
 			this.I_j = eye(6);
 			this.V = zeros(6,1);
 			this.Vdot = zeros(6,1);
-			this.contacts = {};
 			body.joint = this;
 			if ~isempty(parent)
 				parent.children{end+1} = this;
@@ -121,6 +116,8 @@ classdef (Abstract) Joint < handle
 			pBrac = se3.brac(p);
 			Ic = diag(this.body.I_i(1:3));
 			this.I_j = [R*Ic*R'+m*(pBrac'*pBrac),m*pBrac;m*pBrac',m*eye(3)];
+			% which can also be computed as:
+			%   this.I_j = this.body.Ad_ij'*diag(this.body.I_i)*this.body.Ad_ij;
 		end
 		
 		%%
@@ -175,19 +172,6 @@ classdef (Abstract) Joint < handle
 		end
 		
 		%%
-		function scatterTauCon(this,tauc)
-			% Scatters constraint force
-			if nargin == 1
-				nr = redmax.Scene.countR();
-				tauc = zeros(nr,1);
-			end
-			this.tauCon = tauc(this.idxR);
-			if ~isempty(this.next)
-				this.next.scatterTauCon(tauc);
-			end
-		end
-		
-		%%
 		function update(this)
 			% Updates this joint and the attached body
 			this.update_();
@@ -214,6 +198,7 @@ classdef (Abstract) Joint < handle
 			if ~isempty(this.parent) % Add parent velocity
 				this.V = this.V + this.Ad_jp*this.parent.V;
 			end
+			% Update attached body
 			this.body.update();
 			if ~isempty(this.next)
 				this.next.update();
@@ -264,6 +249,7 @@ classdef (Abstract) Joint < handle
 			nm = redmax.Scene.countM();
 			nr = redmax.Scene.countR();
 			if nargout == 1
+				% Only compute J
 				if nargin == 1
 					J = zeros(nm,nr);
 				end
@@ -284,6 +270,7 @@ classdef (Abstract) Joint < handle
 					J = this.next.computeJacobian(J);
 				end
 			else
+				% Compute J and Jdot
 				if nargin == 1
 					J = zeros(nm,nr);
 					Jdot = zeros(nm,nr);

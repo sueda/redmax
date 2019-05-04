@@ -17,7 +17,7 @@ classdef (Abstract) Body < handle
 		Ad_iw    % Adjoint of E_iw
 		Ad_wi    % Adjoint of E_wi
 		Ad_ip    % Adjoint of E_ip
-		Addot_wi % Adjoint dot of E_wi
+		Addot_wi % Adjoint dot of E_wi, used by the Jacobian
 		phi      % Twist at body center
 		phidot   % Acceleration at body center
 		damping  % Viscous damping
