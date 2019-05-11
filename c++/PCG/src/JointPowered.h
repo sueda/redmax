@@ -9,11 +9,10 @@ struct StateSolve;
 
 struct JointPowered : public Joint
 {
-	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
 	// Power constant
 	Eigen::Vector3d cpower;
-
 	JointPowered(std::unique_ptr<State> &S,
 		std::string pn,
 		std::string cn,

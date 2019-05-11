@@ -23,7 +23,7 @@ public:
 	static Eigen::Matrix4d inverse(const Eigen::Matrix4d &E);
 	static Matrix3x6d gamma(const Eigen::Vector3d &r); 
 	static Matrix6d adjoint(const Eigen::Matrix4d &E);
-	static Matrix6d Rigid::addot(const Eigen::Matrix4d &E, const Vector6d &phi);
+	static Matrix6d addot(const Eigen::Matrix4d &E, const Vector6d &phi);
 	static Eigen::Matrix3d bracket3(const Eigen::Vector3d &a);
 	static Eigen::Matrix4d bracket6(const Vector6d &a);
 	static Eigen::Vector3d unbracket3(const Eigen::Matrix3d &A);

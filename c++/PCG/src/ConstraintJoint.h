@@ -27,6 +27,7 @@ public:
 	static void loadOptimalJointOrdering(const std::unique_ptr<LinkageSystem> &LS, std::unique_ptr<State> & S);
 
 	static void update(std::unique_ptr<StateSolve> &SS, const std::unique_ptr<LinkageSystem> &LS, const std::unique_ptr<State> &S);
+    //TODO:'static' member function overrides a virtual function in a base class
 	static void draw(const std::unique_ptr<StateSolve> &SS, const std::unique_ptr<LinkageSystem> & LS, const std::unique_ptr<State> & S);
 
 	static int getConstraintNumMaximal(const std::unique_ptr<LinkageSystem> & LS);

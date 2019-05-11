@@ -347,7 +347,7 @@ int main(int argc, char **argv)
 	//}
 	////RESOURCE_DIR = argv[1] + string("/");
 	//
-	RESOURCE_DIR = "../resources" + string("/");
+	RESOURCE_DIR = "../../resources" + string("/");
 
 	// Start timer
 	ChronoTimer ctime("Main");
