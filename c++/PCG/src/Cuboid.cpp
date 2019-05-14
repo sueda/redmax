@@ -90,9 +90,11 @@ void Cuboid::size(const Eigen::Vector3d &size)
 void Cuboid::init()
 {
 	// Send the position array to the GPU
-	glGenBuffers(1, &posBufID);
-	glBindBuffer(GL_ARRAY_BUFFER, posBufID);
-	glBufferData(GL_ARRAY_BUFFER, posBuf.size()*sizeof(float), &posBuf[0], GL_DYNAMIC_DRAW);
+	if (!posBuf.empty()) {
+		glGenBuffers(1, &posBufID);
+		glBindBuffer(GL_ARRAY_BUFFER, posBufID);
+		glBufferData(GL_ARRAY_BUFFER, posBuf.size()*sizeof(float), &posBuf[0], GL_DYNAMIC_DRAW);
+	}
 	
 	// Send the normal array to the GPU
 	if(!norBuf.empty()) {
@@ -130,10 +132,12 @@ void Cuboid::draw(const unique_ptr<Program> &prog) const
 	GLSL::checkError(GET_FILE_LINE);
 	// Bind position buffer
 	int h_pos = prog->getAttribute("aPos");
-	glEnableVertexAttribArray(h_pos);
-	glBindBuffer(GL_ARRAY_BUFFER, posBufID);
-	glBufferData(GL_ARRAY_BUFFER, posBuf.size() * sizeof(float), &posBuf[0], GL_DYNAMIC_DRAW);
-	glVertexAttribPointer(h_pos, 3, GL_FLOAT, GL_FALSE, 0, (const void *)0);
+	if (h_pos != -1 && posBufID != 0) {
+		glEnableVertexAttribArray(h_pos);
+		glBindBuffer(GL_ARRAY_BUFFER, posBufID);
+		glBufferData(GL_ARRAY_BUFFER, posBuf.size() * sizeof(float), &posBuf[0], GL_DYNAMIC_DRAW);
+		glVertexAttribPointer(h_pos, 3, GL_FLOAT, GL_FALSE, 0, (const void *)0);
+	}
 	
 	// Bind normal buffer
 	int h_nor = prog->getAttribute("aNor");

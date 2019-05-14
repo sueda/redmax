@@ -484,8 +484,8 @@ void CloseHinge::computeCGProd(Eigen::VectorXd & M_x, const Eigen::VectorXd & x,
 	std::shared_ptr<Joint> ja = blocka->joint;
 	std::shared_ptr<Joint> jb = blockb->joint;
 
-	int ia = ja->jindex;
-	int ib = jb->jindex;
+//    int ia = ja->jindex;
+//    int ib = jb->jindex;
 	//unknown
 }
 

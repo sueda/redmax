@@ -21,10 +21,18 @@
 #include <fstream>
 #include <memory>
 
+#if defined(__APPLE__)&& defined(__MACH__)
+    template <typename To, typename From>
+    inline std::shared_ptr<To> reinterpret_pointer_cast(
+                                                        std::shared_ptr<From> const & ptr) noexcept
+    { return std::shared_ptr<To>(ptr, reinterpret_cast<To *>(ptr.get())); }
+
+#endif
+
 static double randDouble(double l, double h)
 {
-	double r = rand() / (double)RAND_MAX;
-	return (1.0 - r) * l + r * h;
+    double r = rand() / (double)RAND_MAX;
+    return (1.0 - r) * l + r * h;
 }
 
 std::set<simType> reducedCoordList{ PCG, PCG_unopt, Pardiso };
@@ -285,8 +293,13 @@ void RigidBodyMain::init()
 	
 	for (int i = 0; i < LS->constraints.size(); ++i)
 	{
+#if defined(__APPLE__)&& defined(__MACH__)
 		if (LS->constraints[i]->type == Constraint::constraintType::elastic)
-			std::reinterpret_pointer_cast<Elastic>(LS->constraints[i])->initLengthToRest(LS, S);
+			reinterpret_pointer_cast<Elastic>(LS->constraints[i])->initLengthToRest(LS, S);
+#else
+        if (LS->constraints[i]->type == Constraint::constraintType::elastic)
+            std::reinterpret_pointer_cast<Elastic>(LS->constraints[i])->initLengthToRest(LS, S);
+#endif
 	}
 	//ConstraintJoint::loadIntoState(SS, LS, S);
 

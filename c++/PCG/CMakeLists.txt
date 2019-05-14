@@ -1,23 +1,39 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+SET(CMAKE_CXX_STANDARD 14)
 
 # Name of the project
 PROJECT(RedMaxPCG)
 
-# list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
-# find_package(Eigen3 REQUIRED)
-# find_package(dlib REQUIRED)
-# find_package(jsoncpp CONFIG REQUIRED)
-# find_package(intel-mkl REQUIRED)
+LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+
+# Custom setting
 
 # FOR LAB MACHINE
-SET(DEF_DIR_GLM "D:\\lib_c++\\glm-0.9.8.5\\glm")
-SET(DEF_DIR_GLFW "D:\\lib_c++\\glfw-3.2.1\\glfw-3.2.1")
-SET(DEF_DIR_GLEW "D:\\lib_c++\\glew-2.1.0-win32\\glew-2.1.0")
-SET(DEF_DIR_EIGEN "D:\\lib_c++\\eigen-eigen-5a0156e40feb\\eigen-eigen-5a0156e40feb")
-SET(DEF_DIR_MOSEK "D:\\lib_c++\\mosek\\8\\tools\\platform\\win64x86")
-SET(DEF_DIR_LIBIGL_INCLUDE "D:\\lib_c++\\libigl-master\\libigl-master\\include")
-SET(DEF_DIR_PARDISO "D:\\lib_c++\\PARDISO")
-SET(DEF_DIR_JSONCPP "D:\\lib_c++\\vcpkg\\packages\\jsoncpp_x64-windows")
+# SET(DEF_DIR_GLM "D:\\lib_c++\\glm-0.9.8.5\\glm")
+# SET(DEF_DIR_GLFW "D:\\lib_c++\\glfw-3.2.1\\glfw-3.2.1")
+# SET(DEF_DIR_GLEW "D:\\lib_c++\\glew-2.1.0-win32\\glew-2.1.0")
+# SET(DEF_DIR_EIGEN "D:\\lib_c++\\eigen-eigen-5a0156e40feb\\eigen-eigen-5a0156e40feb")
+# SET(DEF_DIR_MOSEK "D:\\lib_c++\\mosek\\8\\tools\\platform\\win64x86")
+# SET(DEF_DIR_LIBIGL_INCLUDE "D:\\lib_c++\\libigl-master\\libigl-master\\include")
+# SET(DEF_DIR_PARDISO "D:\\lib_c++\\PARDISO")
+# SET(DEF_DIR_JSONCPP "D:\\lib_c++\\vcpkg\\packages\\jsoncpp_x64-windows")
+
+SET(PARDISO_ROOT_DIR "D:\\Libraries\\PARDISO")
+SET(MKL_ROOT_DIR "C:\\Program Files (x86)\\IntelSWTools\\compilers_and_libraries_2018\\windows\\mkl")
+SET(JSONCPP_ROOT_DIR "D:\\Libraries\\jsoncpp\\jsoncpp_x64-windows")
+SET(GLM_ROOT_DIR "D:\\Libraries\\glm-0.9.8.5\\glm")
+SET(GLFW_ROOT_DIR "D:\\Libraries\\glfw-3.2.1")
+SET(GLEW_ROOT_DIR "D:\\Libraries\\glew-2.1.0")
+SET(EIGEN3_ROOT_DIR "D:\\Libraries\\eigen-eigen-6c3592226be0")
+
+# FOR MAC
+# SET(GLM_ROOT_DIR "/Users/yingwang/Libraries/glm-0.9.9.3/")
+# SET(GLFW_ROOT_DIR "/Users/yingwang/Libraries/glfw-master")
+# SET(GLEW_ROOT_DIR "/Users/yingwang/Libraries/glew-2.1.0")
+# SET(EIGEN3_ROOT_DIR "/Users/yingwang/Libraries/eigen-eigen-6c3592226be0")
+# SET(MKL_ROOT_DIR "/opt/intel/mkl")
+# SET(PARDISO_ROOT_DIR "/Users/yingwang/Libraries/pardiso")
+# SET(JSONCPP_ROOT_DIR "/Users/yingwang/Libraries/jsoncpp-0.10.7/")
 
 # Is this the solution?
 # Override with `cmake -DSOL=ON ..`
@@ -40,105 +56,31 @@ FILE(GLOB_RECURSE GLSL "resources/*.glsl")
 # Set the executable.
 ADD_EXECUTABLE(${CMAKE_PROJECT_NAME} ${SOURCES} ${HEADERS} ${GLSL})
 
-# Get the GLM environment variable. Since GLM is a header-only library, we
-# just need to add it to the include directory.
-SET(GLM_INCLUDE_DIR "$ENV{GLM_INCLUDE_DIR}")
-IF(NOT GLM_INCLUDE_DIR)
-  # The environment variable was not set
-  SET(ERR_MSG "Please point the environment variable GLM_INCLUDE_DIR to the root directory of your GLM installation.")
-  IF(WIN32)
-    # On Windows, try the default location
-    MESSAGE(STATUS "Looking for GLM in ${DEF_DIR_GLM}")
-    IF(IS_DIRECTORY ${DEF_DIR_GLM})
-      MESSAGE(STATUS "Found!")
-      SET(GLM_INCLUDE_DIR ${DEF_DIR_GLM})
-    ELSE()
-      MESSAGE(FATAL_ERROR ${ERR_MSG})
-    ENDIF()
-  ELSE()
-    MESSAGE(FATAL_ERROR ${ERR_MSG})
-  ENDIF()
-ENDIF()
-INCLUDE_DIRECTORIES(${GLM_INCLUDE_DIR})
-
-# Get the GLFW environment variable. There should be a CMakeLists.txt in the 
-# specified directory.
-SET(GLFW_DIR "$ENV{GLFW_DIR}")
-IF(NOT GLFW_DIR)
-  # The environment variable was not set
-  SET(ERR_MSG "Please point the environment variable GLFW_DIR to the root directory of your GLFW installation.")
-  IF(WIN32)
-    # On Windows, try the default location
-    MESSAGE(STATUS "Looking for GLFW in ${DEF_DIR_GLFW}")
-    IF(IS_DIRECTORY ${DEF_DIR_GLFW})
-      MESSAGE(STATUS "Found!")
-      SET(GLFW_DIR ${DEF_DIR_GLFW})
-    ELSE()
-      MESSAGE(FATAL_ERROR ${ERR_MSG})
-    ENDIF()
-  ELSE()
-    MESSAGE(FATAL_ERROR ${ERR_MSG})
-  ENDIF()
-ENDIF()
-OPTION(GLFW_BUILD_EXAMPLES "GLFW_BUILD_EXAMPLES" OFF)
-OPTION(GLFW_BUILD_TESTS "GLFW_BUILD_TESTS" OFF)
-OPTION(GLFW_BUILD_DOCS "GLFW_BUILD_DOCS" OFF)
-IF(CMAKE_BUILD_TYPE MATCHES Release)
-  ADD_SUBDIRECTORY(${GLFW_DIR} ${GLFW_DIR}/release)
-ELSE()
-  ADD_SUBDIRECTORY(${GLFW_DIR} ${GLFW_DIR}/debug)
-ENDIF()
-INCLUDE_DIRECTORIES(${GLFW_DIR}/include)
-TARGET_LINK_LIBRARIES(${CMAKE_PROJECT_NAME} glfw ${GLFW_LIBRARIES})
-
-# Get the GLEW environment variable.
-SET(GLEW_DIR "$ENV{GLEW_DIR}")
-IF(NOT GLEW_DIR)
-  # The environment variable was not set
-  SET(ERR_MSG "Please point the environment variable GLEW_DIR to the root directory of your GLEW installation.")
-  IF(WIN32)
-    # On Windows, try the default location
-    MESSAGE(STATUS "Looking for GLEW in ${DEF_DIR_GLEW}")
-    IF(IS_DIRECTORY ${DEF_DIR_GLEW})
-      MESSAGE(STATUS "Found!")
-      SET(GLEW_DIR ${DEF_DIR_GLEW})
-    ELSE()
-      MESSAGE(FATAL_ERROR ${ERR_MSG})
-    ENDIF()
-  ELSE()
-    MESSAGE(FATAL_ERROR ${ERR_MSG})
-  ENDIF()
-ENDIF()
-INCLUDE_DIRECTORIES(${GLEW_DIR}/include)
-IF(WIN32)
-  # With prebuilt binaries
-  TARGET_LINK_LIBRARIES(${CMAKE_PROJECT_NAME} ${GLEW_DIR}/lib/Release/x64/glew32s.lib)
-ELSE()
-  TARGET_LINK_LIBRARIES(${CMAKE_PROJECT_NAME} ${GLEW_DIR}/lib/libGLEW.a)
-ENDIF()
-
-# Get the EIGEN environment variable. Since EIGEN is a header-only library, we
-# just need to add it to the include directory.
-SET(EIGEN3_INCLUDE_DIR "$ENV{EIGEN3_INCLUDE_DIR}")
-IF(NOT EIGEN3_INCLUDE_DIR)
-  # The environment variable was not set
-  SET(ERR_MSG "Please point the environment variable EIGEN3_INCLUDE_DIR to the root directory of your EIGEN installation.")
-  IF(WIN32)
-    # On Windows, try the default location
-    MESSAGE(STATUS "Looking for EIGEN in ${DEF_DIR_EIGEN}")
-    IF(IS_DIRECTORY ${DEF_DIR_EIGEN})
-      MESSAGE(STATUS "Found!")
-      SET(EIGEN3_INCLUDE_DIR ${DEF_DIR_EIGEN})
-    ELSE()
-      MESSAGE(FATAL_ERROR ${ERR_MSG})
-    ENDIF()
-  ELSE()
-    MESSAGE(FATAL_ERROR ${ERR_MSG})
-  ENDIF()
-ENDIF()
+################################################################################
+### Compile the Eigen3 part ###
+find_package (Eigen3 3.3 REQUIRED)
 INCLUDE_DIRECTORIES(${EIGEN3_INCLUDE_DIR})
 
-# # For MOSEK functionality
+################################################################################
+### Compile the GLM part ###
+find_package (GLM REQUIRED)
+INCLUDE_DIRECTORIES(${GLM_INCLUDE_DIRS})
+
+################################################################################
+### Compile the GLFW part ###
+find_package (GLFW REQUIRED)
+INCLUDE_DIRECTORIES(${GLFW_INCLUDE_DIRS})
+TARGET_LINK_LIBRARIES(${CMAKE_PROJECT_NAME} ${GLFW_LIBRARIES})
+
+################################################################################
+### Compile the GLEW part ###
+find_package (GLEW REQUIRED)
+INCLUDE_DIRECTORIES(${GLEW_INCLUDE_DIRS})
+TARGET_LINK_LIBRARIES(${CMAKE_PROJECT_NAME} ${GLEW_LIBRARIES})
+
+################################################################################
+### Compile the MOSEK part ###
+
 # SET(MOSEK_DIR "$ENV{MOSEK_DIR}")
 # IF(NOT MOSEK_DIR)
   # # The environment variable was not set
@@ -222,46 +164,22 @@ INCLUDE_DIRECTORIES(${EIGEN3_INCLUDE_DIR})
 # INCLUDE_DIRECTORIES(${NLOPT_INCLUDE_DIR})
 # TARGET_LINK_LIBRARIES(${CMAKE_PROJECT_NAME} ${NLOPT_INCLUDE_DIR}/libnlopt-0.lib)
 
-#Include PARDISO
-SET(PARDISO_INCLUDE_DIR "$ENV{PARDISO_INCLUDE_DIR}")
-IF(NOT PARDISO_INCLUDE_DIR)
- # The environment variable was not set
- SET(ERR_MSG "Please point the environment variable PARDISO_INCLUDE_DIR to the root directory of your PARDISO installation.")
-  IF(WIN32)
-    # On Windows, try the default location
-    MESSAGE(STATUS "Looking for PARDISO in ${DEF_DIR_PARDISO}")
-    IF(IS_DIRECTORY ${DEF_DIR_PARDISO})
-      MESSAGE(STATUS "Found!")
-      SET(PARDISO_INCLUDE_DIR ${DEF_DIR_PARDISO})
-    ELSE()
-      MESSAGE(FATAL_ERROR ${ERR_MSG})
-    ENDIF()
-  ELSE()
-    MESSAGE(FATAL_ERROR ${ERR_MSG})
-  ENDIF()
-ENDIF()
-TARGET_LINK_LIBRARIES(${CMAKE_PROJECT_NAME} ${PARDISO_INCLUDE_DIR}/libpardiso600-WIN-X86-64.lib)
+################################################################################
+### Compile the PARDISO part ###
+find_package (PARDISO REQUIRED)
+TARGET_LINK_LIBRARIES(${CMAKE_PROJECT_NAME} ${PARDISO_LIBRARIES})
 
-#Include JSONCPP
-SET(JSONCPP_INCLUDE_DIR "$ENV{JSONCPP_INCLUDE_DIR}")
-IF(NOT JSONCPP_INCLUDE_DIR)
- # The environment variable was not set
- SET(ERR_MSG "Please point the environment variable JSONCPP_INCLUDE_DIR to the root directory of your JSONCPP installation.")
-  IF(WIN32)
-    # On Windows, try the default location
-    MESSAGE(STATUS "Looking for JSONCPP in ${DEF_DIR_JSONCPP}")
-    IF(IS_DIRECTORY ${DEF_DIR_JSONCPP})
-      MESSAGE(STATUS "Found!")
-      SET(JSONCPP_INCLUDE_DIR ${DEF_DIR_JSONCPP})
-    ELSE()
-      MESSAGE(FATAL_ERROR ${ERR_MSG})
-    ENDIF()
-  ELSE()
-    MESSAGE(FATAL_ERROR ${ERR_MSG})
-  ENDIF()
-ENDIF()
-INCLUDE_DIRECTORIES(${JSONCPP_INCLUDE_DIR}/include)
-TARGET_LINK_LIBRARIES(${CMAKE_PROJECT_NAME} ${JSONCPP_INCLUDE_DIR}/lib/jsoncpp.lib)
+################################################################################
+### Compile the JSONCPP part ###
+find_package (JSONCPP REQUIRED)
+INCLUDE_DIRECTORIES(${JSONCPP_INCLUDE_DIRS})
+TARGET_LINK_LIBRARIES(${CMAKE_PROJECT_NAME} ${JSONCPP_LIBRARIES})
+
+################################################################################
+### Compile the MKL part ###
+find_package (MKL REQUIRED)
+INCLUDE_DIRECTORIES(${MKL_INCLUDE_DIRS})
+TARGET_LINK_LIBRARIES(${CMAKE_PROJECT_NAME} ${MKL_LIBRARIES})
 
 # # CMAES stuff
 # SET(CMAES_INCLUDE_DIR "$ENV{CMAES_INCLUDE_DIR}")
@@ -368,6 +286,7 @@ TARGET_LINK_LIBRARIES(${CMAKE_PROJECT_NAME} ${JSONCPP_INCLUDE_DIR}/lib/jsoncpp.l
 #ENDIF()
 #ADD_SUBDIRECTORY(${DLIB_INCLUDE_DIR}/dlib dlib_build)
 #TARGET_LINK_LIBRARIES(${CMAKE_PROJECT_NAME} dlib::dlib)
+
 
 # OS specific options and libraries
 IF(WIN32)

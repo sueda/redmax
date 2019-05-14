@@ -15,9 +15,9 @@ class RigidBodyCreator
 public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-	RigidBodyCreator(double t) :
-		t(t)
-	{};
+    RigidBodyCreator(double t):
+            t(t)
+    {};
 	~RigidBodyCreator() {};
 
 	enum dynamicType { chain, tree };
@@ -99,9 +99,8 @@ public:
 	void printLinkages(
 		const std::unique_ptr<LinkageSystem>& LS, 
 		const std::unique_ptr<State>& S);
-
 private:
-	double &t;		// reference 'global' sim time - from rigid body main 
+    double &t;		// reference 'global' sim time - from rigid body main
 
 	const std::string SNAPPED_LINKAGES = "linkages_auto_save.txt";
 	const std::string USER_SPLINE = "splines_auto_save.txt";
