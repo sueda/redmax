@@ -292,7 +292,7 @@ void RigidBodyMain::init()
 	for (int i = 0; i < LS->constraints.size(); ++i)
 	{
 		if (LS->constraints[i]->type == Constraint::constraintType::elastic)
-			reinterpret_pointer_cast<Elastic>(LS->constraints[i])->initLengthToRest(LS, S);
+			std::reinterpret_pointer_cast<Elastic>(LS->constraints[i])->initLengthToRest(LS, S);
 	}
 	//ConstraintJoint::loadIntoState(SS, LS, S);
 

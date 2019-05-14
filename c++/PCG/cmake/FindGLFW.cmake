@@ -30,17 +30,10 @@ if (WIN32)
 		${GLFW_ROOT_DIR}/include
 		DOC "The directory where GLFW/glfw.h resides")
 
-	# Use glfw3.lib for static library
-	if (GLFW_USE_STATIC_LIBS)
-		set(GLFW_LIBRARY_NAME glfw3)
-	else()
-		set(GLFW_LIBRARY_NAME glfw3dll)
-	endif()
-
 	# Find library files
 	find_library(
 		GLFW_LIBRARY
-		NAMES ${GLFW_LIBRARY_NAME}
+		NAMES glfw3
 		PATHS
 		$ENV{PROGRAMFILES}/lib
 		${GLFW_ROOT_DIR}/lib
@@ -48,7 +41,6 @@ if (WIN32)
         ${GLFW_ROOT_DIR}/src/Release
         ${GLFW_ROOT_DIR}/src/Debug)
 
-	unset(GLFW_LIBRARY_NAME)
 else()
 	# Find include files
 	find_path(

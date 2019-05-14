@@ -340,14 +340,14 @@ void stepperFunc()
 
 int main(int argc, char **argv)
 {
-	//if(argc < 2) 
-	//{
-	//	cout << "Please specify the resource directory." << endl;
-	//	return 0;
-	//}
-	////RESOURCE_DIR = argv[1] + string("/");
-	//
-	RESOURCE_DIR = "../../resources" + string("/");
+	if(argc < 2) 
+	{
+		cout << "Please specify the resource directory." << endl;
+		return 0;
+	}
+	RESOURCE_DIR = argv[1] + string("/");
+	
+	//RESOURCE_DIR = "../resources" + string("/");
 
 	// Start timer
 	ChronoTimer ctime("Main");

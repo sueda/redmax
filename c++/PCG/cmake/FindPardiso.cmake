@@ -20,14 +20,10 @@ if (WIN32)
 	# Find library files
 	find_library(
 		PARDISO_LIBRARY
-		NAMES pardiso600-WIN-X86-64
+		NAMES libpardiso600-WIN-X86-64
 		PATHS
 		$ENV{PROGRAMFILES}/lib
-		${PARDISO_ROOT_DIR}
-		${PARDISO_ROOT_DIR}/lib
-		${PARDISO_ROOT_DIR}/src
-        ${PARDISO_ROOT_DIR}/src/Release
-        ${PARDISO_ROOT_DIR}/src/Debug)
+		${PARDISO_ROOT_DIR})
 elseif(APPLE)	
 	# Find library files
 	# Try to use static libraries

@@ -74,9 +74,9 @@ void Scene::load(const std::string &FILENAME, std::shared_ptr<Camera> &c)
 	//rigid_body->loadTree(5);
 	//rigid_body->loadSimpleTree(6);
 	//c->setTranslations(0.0f, 14.0f, -34.8f);
-    rigid_body->loadUmbrella(16);
+   // rigid_body->loadUmbrella(16);
 	//rigid_body->loadTest(5);
-//    rigid_body->loadBridge(20, 20);
+    rigid_body->loadBridge(20, 20);
 	//rigid_body->loadSimpleBridge(30);
 
 	//c->setTranslations(0.0f, -5.0f, -24.8f);

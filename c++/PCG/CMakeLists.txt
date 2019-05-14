@@ -1,5 +1,5 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
-SET(CMAKE_CXX_STANDARD 14)
+#SET(CMAKE_CXX_STANDARD 14)
 
 # Name of the project
 PROJECT(RedMaxPCG)
@@ -18,13 +18,22 @@ LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 # SET(DEF_DIR_PARDISO "D:\\lib_c++\\PARDISO")
 # SET(DEF_DIR_JSONCPP "D:\\lib_c++\\vcpkg\\packages\\jsoncpp_x64-windows")
 
+SET(PARDISO_ROOT_DIR "D:\\Libraries\\PARDISO")
+SET(MKL_ROOT_DIR "C:\\Program Files (x86)\\IntelSWTools\\compilers_and_libraries_2018\\windows\\mkl")
+SET(JSONCPP_ROOT_DIR "D:\\Libraries\\jsoncpp\\jsoncpp_x64-windows")
+SET(GLM_ROOT_DIR "D:\\Libraries\\glm-0.9.8.5\\glm")
+SET(GLFW_ROOT_DIR "D:\\Libraries\\glfw-3.2.1")
+SET(GLEW_ROOT_DIR "D:\\Libraries\\glew-2.1.0")
+SET(EIGEN3_ROOT_DIR "D:\\Libraries\\eigen-eigen-6c3592226be0")
+
 # FOR MAC
-SET(GLM_ROOT_DIR "/Users/yingwang/Libraries/glm-0.9.9.3/")
-SET(GLFW_ROOT_DIR "/Users/yingwang/Libraries/glfw-master")
-SET(JSONCPP_ROOT_DIR "/Users/yingwang/Libraries/jsoncpp-0.10.7/")
-SET(GLEW_ROOT_DIR "/Users/yingwang/Libraries/glew-2.1.0")
-SET(MKL_ROOT_DIR "/opt/intel/mkl")
-SET(PARDISO_ROOT_DIR "/Users/yingwang/Libraries/pardiso")
+# SET(GLM_ROOT_DIR "/Users/yingwang/Libraries/glm-0.9.9.3/")
+# SET(GLFW_ROOT_DIR "/Users/yingwang/Libraries/glfw-master")
+# SET(GLEW_ROOT_DIR "/Users/yingwang/Libraries/glew-2.1.0")
+# SET(EIGEN3_ROOT_DIR "/Users/yingwang/Libraries/eigen-eigen-6c3592226be0")
+# SET(MKL_ROOT_DIR "/opt/intel/mkl")
+# SET(PARDISO_ROOT_DIR "/Users/yingwang/Libraries/pardiso")
+# SET(JSONCPP_ROOT_DIR "/Users/yingwang/Libraries/jsoncpp-0.10.7/")
 
 # Is this the solution?
 # Override with `cmake -DSOL=ON ..`
