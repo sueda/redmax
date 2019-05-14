@@ -27,12 +27,13 @@
                                                         std::shared_ptr<From> const & ptr) noexcept
     { return std::shared_ptr<To>(ptr, reinterpret_cast<To *>(ptr.get())); }
 
-    static double randDouble(double l, double h)
-    {
-        double r = rand() / (double)RAND_MAX;
-        return (1.0 - r) * l + r * h;
-    }
 #endif
+
+static double randDouble(double l, double h)
+{
+    double r = rand() / (double)RAND_MAX;
+    return (1.0 - r) * l + r * h;
+}
 
 std::set<simType> reducedCoordList{ PCG, PCG_unopt, Pardiso };
 std::set<simType> reducedNoMatrixList{ PCG, PCG_unopt };
