@@ -661,9 +661,8 @@ Eigen::VectorXd Solver::solvePCG(std::unique_ptr<StateSolve>& SS, std::unique_pt
 		Eigen::VectorXd Gmrow2 = SS->Gm.row(1);
 		Eigen::VectorXd GrTcol1 = ConstraintJoint::computeJT_x(Gmrow1, SS, LS, S);
 		Eigen::VectorXd GrTcol2 = ConstraintJoint::computeJT_x(Gmrow2, SS, LS, S);
-
-		// Run pcg for each row of G
-		Eigen::VectorXd MiGt1;
+        
+        Eigen::VectorXd MiGt1;
 		Eigen::VectorXd MiGt2;
 		pcdSaad2003(MiGt1, LHSqd, GrTcol1, SS, LS, S);
 		pcdSaad2003(MiGt2, LHSqd, GrTcol2, SS, LS, S);
@@ -1326,49 +1325,24 @@ void Solver::addSparseToFile(std::ofstream & outfile, std::string name, Eigen::M
 
 void Solver::addSparseToFile(std::ofstream & outfile, std::string name, Eigen::SparseMatrix<double>& M)
 {
-	std::vector<int> ilist;
-	std::vector<int> jlist;
-	std::vector<double> vlist;
-
-	int *iptr = M.innerIndexPtr();
-	int *jptr = M.outerIndexPtr();
-	double *vptr = M.valuePtr();
-
-	for (int r = 0; r < M.rows(); ++r)
-	{
-		for (int c = 0; c < M.cols(); ++c)
-		{
-			double value = M.coeff(r, c);
-			if (std::abs(value) > THRESHOLD)
-			{
-				ilist.push_back(r);
-				jlist.push_back(c);
-				vlist.push_back(value);
-			}
-		}
-	}
-
-	outfile << "i = [\n";
-	for (int i = 0; i < ilist.size(); i++)
-	{
-		outfile << ilist[i] + 1 << " ";
-	}
-	outfile << "]';\n\nj= [\n";
-	for (int i = 0; i < jlist.size(); i++)
-	{
-		outfile << jlist[i] + 1 << " ";
-	}
-	outfile << "]';\n\nv = [\n";
-	for (int i = 0; i < vlist.size(); i++)
-	{
-		outfile << vlist[i] << " ";
-	}
-	outfile << "]';\n" << std::endl;
-
-	int m = (int)M.rows();
-	int n = (int)M.cols();
-
-	outfile << name << " = sparse(i,j,v," + std::to_string(m) + "," + std::to_string(n) + ");\n" << std::endl;
+    // https://stackoverflow.com/questions/28685877/convert-an-eigen-matrix-to-triplet-form-c
+    std::string entry = " = sparse(";
+    outfile << "ijv = [" << std::endl;
+    int e = 1;
+    for(int k = 0; k < M.outerSize(); ++k) {
+        for(Eigen::SparseMatrix<double>::InnerIterator it(M,k); it; ++it) {
+            double v = it.value();
+            if(std::abs(v) > 1e-10) {
+                outfile << it.row()+1 << " "; // row index
+                outfile << it.col()+1 << " "; // col index (here it is equal to k)
+                outfile << v << std::endl;
+                entry.append("ijv(:," + std::to_string(e) + "),");
+                ++e;
+            }
+        }
+    }
+    outfile << "];" << std::endl;
+    outfile << name <<  entry + std::to_string(M.rows()) + "," + std::to_string(M.cols()) + ");\n" << std::endl;
 }
 
 void Solver::addVectorToFile(std::ofstream & outfile, std::string name, Eigen::VectorXd & M)
