@@ -25,6 +25,12 @@
 # Copyright (c) 2009 Benoit Jacob <jacob.benoit.1@gmail.com>
 # Redistribution and use is allowed according to the terms of the 2-clause BSD license.
 
+SET(EIGEN3_INCLUDE_DIR "$ENV{EIGEN3_INCLUDE_DIR}")
+IF(NOT EIGEN3_INCLUDE_DIR)
+  SET(ERR_MSG "Please point the environment variable EIGEN3_INCLUDE_DIR to the root directory of your EIGEN installation.")
+  MESSAGE(FATAL_ERROR ${ERR_MSG})
+ENDIF()
+
 if(NOT Eigen3_FIND_VERSION)
   if(NOT Eigen3_FIND_VERSION_MAJOR)
     set(Eigen3_FIND_VERSION_MAJOR 2)
@@ -83,6 +89,7 @@ else (EIGEN3_INCLUDE_DIR)
         ENV EIGEN3_ROOT 
         ENV EIGEN3_ROOT_DIR
         PATHS
+        ${EIGEN3_ROOT_DIR}
         ${CMAKE_INSTALL_PREFIX}/include
         ${KDE4_INCLUDE_DIR}
         PATH_SUFFIXES eigen3 eigen

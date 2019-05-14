@@ -68,13 +68,13 @@ else()
 		GLFW_LIBRARY
 		NAMES glfw3
 		PATHS
-		${GLFW_ROOT_DIR}/lib
 		/usr/lib64
 		/usr/lib
 		/usr/local/lib64
 		/usr/local/lib
 		/sw/lib
 		/opt/local/lib
+		${GLFW_ROOT_DIR}/lib
 		${GLFW_ROOT_DIR}/src
 		DOC "The GLFW library")
 endif()
