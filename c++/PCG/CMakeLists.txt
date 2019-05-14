@@ -21,8 +21,9 @@ LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 # SET(DEF_DIR_JSONCPP "D:\\lib_c++\\vcpkg\\packages\\jsoncpp_x64-windows")
 
 # FOR MAC
-SET(DEF_DIR_GLM "/Users/yingwang/Libraries/glm-0.9.9.3")
-SET(DEF_DIR_GLFW "/Users/yingwang/Libraries/glfw-master")
+SET(GLM_ROOT_DIR "/Users/yingwang/Libraries/glm-0.9.9.3/")
+SET(GLFW_ROOT_DIR "/Users/yingwang/Libraries/glfw-master")
+
 SET(DEF_DIR_GLEW "/Users/yingwang/Libraries/glew-2.1.0")
 SET(DEF_DIR_LIBIGL_INCLUDE "/Users/yingwang/Libraries/libigl-2.0.0/include")
 SET(DEF_DIR_PARDISO "/Users/yingwang/Libraries/pardiso")
@@ -50,67 +51,48 @@ FILE(GLOB_RECURSE GLSL "resources/*.glsl")
 # Set the executable.
 ADD_EXECUTABLE(${CMAKE_PROJECT_NAME} ${SOURCES} ${HEADERS} ${GLSL})
 
-# Get the EIGEN environment variable. (header-only)
+################################################################################
+### Compile the Eigen3 part ###
 find_package (Eigen3 3.3 REQUIRED)
 INCLUDE_DIRECTORIES(${EIGEN3_INCLUDE_DIR})
 
-# Get the GLM environment variable. (header-only)
-SET(GLM_INCLUDE_DIR "$ENV{GLM_INCLUDE_DIR}")
-IF(NOT GLM_INCLUDE_DIR)
-  # The environment variable was not set
-  SET(ERR_MSG "Please point the environment variable GLM_INCLUDE_DIR to the root directory of your GLM installation.")
-  IF(WIN32)
-    # On Windows, try the default location
-    MESSAGE(STATUS "Looking for GLM in ${DEF_DIR_GLM}")
-    IF(IS_DIRECTORY ${DEF_DIR_GLM})
-      MESSAGE(STATUS "Found!")
-      SET(GLM_INCLUDE_DIR ${DEF_DIR_GLM})
-    ELSE()
-      MESSAGE(FATAL_ERROR ${ERR_MSG})
-    ENDIF()
-  ELSE()
-  	MESSAGE(STATUS "Looking for GLM in ${DEF_DIR_GLM}")
-  	IF(IS_DIRECTORY ${DEF_DIR_GLM})
-      MESSAGE(STATUS "Found!")
-      SET(GLM_INCLUDE_DIR ${DEF_DIR_GLM})
-    ELSE()
-      MESSAGE(FATAL_ERROR ${ERR_MSG})
-    ENDIF()
-  ENDIF()
-ENDIF()
-INCLUDE_DIRECTORIES(${GLM_INCLUDE_DIR})
+################################################################################
+### Compile the GLM part ###
+find_package (GLM REQUIRED)
+INCLUDE_DIRECTORIES(${GLM_INCLUDE_DIRS})
 
-# Get the GLFW environment variable. There should be a CMakeLists.txt in the 
-# specified directory.
+################################################################################
+### Compile the GLFW part ###
 SET(GLFW_DIR "$ENV{GLFW_DIR}")
-IF(NOT GLFW_DIR)
+IF(NOT GLFW_ROOT_DIR)
   # The environment variable was not set
-  SET(ERR_MSG "Please point the environment variable GLFW_DIR to the root directory of your GLFW installation.")
-  # IF(WIN32)
-    # On Windows, try the default location
-    MESSAGE(STATUS "Looking for GLFW in ${DEF_DIR_GLFW}")
-    IF(IS_DIRECTORY ${DEF_DIR_GLFW})
-      MESSAGE(STATUS "Found!")
-      SET(GLFW_DIR ${DEF_DIR_GLFW})
-    ELSE()
-      MESSAGE(FATAL_ERROR ${ERR_MSG})
-    ENDIF()
-  # ELSE()
-  #   MESSAGE(FATAL_ERROR ${ERR_MSG})
-  # ENDIF()
+	SET(ERR_MSG "Please point the environment variable GLFW_DIR to the root directory of your GLFW installation.")
+	# On Windows, try the default location
+	MESSAGE(STATUS "Looking for GLFW in ${DEF_DIR_GLFW}")
+	IF(IS_DIRECTORY ${DEF_DIR_GLFW})
+	  MESSAGE(STATUS "Found!")
+	  SET(GLFW_DIR ${DEF_DIR_GLFW})
+	ELSE()
+	  MESSAGE(FATAL_ERROR ${ERR_MSG})
+	ENDIF()
 ENDIF()
 OPTION(GLFW_BUILD_EXAMPLES "GLFW_BUILD_EXAMPLES" OFF)
 OPTION(GLFW_BUILD_TESTS "GLFW_BUILD_TESTS" OFF)
 OPTION(GLFW_BUILD_DOCS "GLFW_BUILD_DOCS" OFF)
 IF(CMAKE_BUILD_TYPE MATCHES Release)
-  ADD_SUBDIRECTORY(${GLFW_DIR} ${GLFW_DIR}/release)
+  ADD_SUBDIRECTORY(${GLFW_ROOT_DIR} ${GLFW_ROOT_DIR}/release)
 ELSE()
-  ADD_SUBDIRECTORY(${GLFW_DIR} ${GLFW_DIR}/debug)
+  ADD_SUBDIRECTORY(${GLFW_ROOT_DIR} ${GLFW_ROOT_DIR}/debug)
 ENDIF()
-INCLUDE_DIRECTORIES(${GLFW_DIR}/include)
+INCLUDE_DIRECTORIES(${GLFW_ROOT_DIR}/include)
 TARGET_LINK_LIBRARIES(${CMAKE_PROJECT_NAME} glfw ${GLFW_LIBRARIES})
 
-# Get the GLEW environment variable.
+# find_package (GLFW REQUIRED)
+# INCLUDE_DIRECTORIES(${GLFW_INCLUDE_DIRS})
+# TARGET_LINK_LIBRARIES(${CMAKE_PROJECT_NAME} glfw ${GLFW_LIBRARIES})
+
+################################################################################
+### Compile the GLEW part ###
 SET(GLEW_DIR "$ENV{GLEW_DIR}")
 IF(NOT GLEW_DIR)
   # The environment variable was not set
@@ -220,7 +202,9 @@ ENDIF()
 # INCLUDE_DIRECTORIES(${NLOPT_INCLUDE_DIR})
 # TARGET_LINK_LIBRARIES(${CMAKE_PROJECT_NAME} ${NLOPT_INCLUDE_DIR}/libnlopt-0.lib)
 
-#Include PARDISO
+################################################################################
+### Compile the PARDISO part ###
+
 SET(PARDISO_INCLUDE_DIR "$ENV{PARDISO_INCLUDE_DIR}")
 IF(NOT PARDISO_INCLUDE_DIR)
  # The environment variable was not set
@@ -247,7 +231,8 @@ IF(NOT PARDISO_INCLUDE_DIR)
   ENDIF()
 ENDIF()
 
-#Include JSONCPP
+################################################################################
+### Compile the JSONCPP part ###
 SET(JSONCPP_INCLUDE_DIR "$ENV{JSONCPP_INCLUDE_DIR}")
 IF(NOT JSONCPP_INCLUDE_DIR)
  # The environment variable was not set
@@ -282,7 +267,8 @@ ELSEIF(APPLE)
 	TARGET_LINK_LIBRARIES(${CMAKE_PROJECT_NAME} -L${JSONCPP_INCLUDE_DIR}/lib/ libjsoncpp.a)
 ENDIF()
 
-# Get the MKL environment variable.
+################################################################################
+### Compile the MKL part ###
 SET(MKL_DIR "$ENV{MKL_DIR}")
 IF(NOT MKL_DIR)
   # The environment variable was not set

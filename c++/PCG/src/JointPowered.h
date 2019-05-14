@@ -13,6 +13,7 @@ struct JointPowered : public Joint
 
 	// Power constant
 	Eigen::Vector3d cpower;
+    JointPowered(){}
 	JointPowered(std::unique_ptr<State> &S,
 		std::string pn,
 		std::string cn,
@@ -25,8 +26,7 @@ struct JointPowered : public Joint
 	{
 		this->cpower = cpower;
 	};
-
-	void updateMaxSparse(std::unique_ptr<StateSolve> &SS, const std::unique_ptr<LinkageSystem> &LS, const std::unique_ptr<State> &S, Matrix6d &parentAdj, Matrix6d &childAdj, Eigen::Vector3d &g) const;
+    void updateMaxSparse(std::unique_ptr<StateSolve> &SS, const std::unique_ptr<LinkageSystem> &LS, const std::unique_ptr<State> &S, Matrix6d &parentAdj, Matrix6d &childAdj, Eigen::Vector3d &g) const;
 	
 private:
 	void mapSelf(int c_i, std::unique_ptr<State> &S);

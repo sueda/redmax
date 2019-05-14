@@ -1822,7 +1822,8 @@ void RigidBodyCreator::loadLinkagesfromFile(
 					basis = Eigen::AngleAxisd(angle, Eigen::Vector3d::UnitZ());
 					if (jointtype == Joint::JType::Powered)
 					{
-//                        j = std::make_shared<JointPowered>(S, parent_name, name, parent_pos, pos, root, LS->joints.size(), Eigen::Vector3d(1, 0, 0)); // rotation of joint?
+                        Eigen::Vector3d cp = Eigen::Vector3d(1.0, 0.0, 0.0);
+                        j = std::make_shared<JointPowered>(S, parent_name, name, parent_pos, pos, root, LS->joints.size(), cp); // rotation of joint?
 					}
 					else if (jointtype == Joint::JType::Springy)
 					{

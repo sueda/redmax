@@ -31,7 +31,9 @@ public:
 
 	virtual void computeCGProd(Eigen::VectorXd &M_x, const Eigen::VectorXd &x, const std::unique_ptr<StateSolve>& SS, const std::unique_ptr<LinkageSystem>& LS, const std::unique_ptr<State>& S) = 0;
 
-    virtual void update(std::unique_ptr<StateSolve> &SS, const std::unique_ptr<LinkageSystem> &LS, const std::unique_ptr<State> &S) = 0;
+    // TODO: changed to non virtual 
+    void update(std::unique_ptr<StateSolve> &SS, const std::unique_ptr<LinkageSystem> &LS, const std::unique_ptr<State> &S) {}
+    
 	virtual void update(std::unique_ptr<StateSolve> &SS, const std::unique_ptr<LinkageSystem> &LS, const std::unique_ptr<State> &S, std::unique_ptr<StateDeriv> &DS) = 0;
 	virtual void updateJoint(std::unique_ptr<StateSolve> &SS, const std::unique_ptr<LinkageSystem> &LS, const std::unique_ptr<State> &S) = 0;
 	virtual void draw(const std::unique_ptr<LinkageSystem> &LS, const std::unique_ptr<State> &S) const = 0;

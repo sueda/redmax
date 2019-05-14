@@ -10,16 +10,15 @@
 #include <Eigen/StdVector>
 
 struct Block;
-
+EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Eigen::Matrix4d)
+EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Matrix6d)
 // -----------------------------------------------------//
 // Structure of Array style data container for Linkage  //
 // System State information								//
 // -----------------------------------------------------//
 struct State
 {
-	EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Eigen::Matrix4d)
-	EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Matrix6d)
-
+	
 	// time in the simulation
 	double &t;
 	// Velocity vector - maximal -- phi_ii
@@ -113,8 +112,7 @@ struct State
 		std::vector<Eigen::MatrixXd> ST_Bhat_;
 	};
 
-	State(double &t) :
-		t(t)
-	{};
-	~State() {};
+    State(double &t):t(t)
+    {};
+    ~State() {};
 };
