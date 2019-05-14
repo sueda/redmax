@@ -86,7 +86,10 @@ classdef (Abstract) Joint < handle
 		
 		%%
 		function order = getTraversalOrder(this,order)
-			% Gets traversal order
+			% Gets traversal order. Given the tree structure (parent,
+			% children) of the joints, this function returns an array
+			% representation so that the parent comes before all of its
+			% children.
 			if nargin == 1
 				order = [];
 			end

@@ -87,7 +87,7 @@ for k = 2 : length(t)
 	% Dr: reduced damping matrix (eg joint damping)
 	% J, Jdot: Jacobian and its time derivative
 	[Mm,fm] = body0.computeMassGrav(scene.grav);
-	[Km,Dm] = body0.computeForceDamping();
+	[fm,Dm] = body0.computeForceDamping(fm);
 	[fr,Kr] = joint0.computeForceStiffness();
 	[~,Dr] = joint0.computeForceDamping();
 	[J,Jdot] = joint0.computeJacobian();
@@ -96,7 +96,7 @@ for k = 2 : length(t)
 	Mr = J'*Mm*J;
 	Mr = 0.5*(Mr + Mr');
 	frtilde = Mr*qdot0 + h*(J'*(fm - Mm*Jdot*qdot0) + fr);
-	Mrtilde = Mr + J'*(h*Dm - h*h*Km)*J + h*Dr - h*h*Kr;
+	Mrtilde = Mr + J'*h*Dm*J + h*Dr - h*h*Kr;
 	qdot1 = Mrtilde\frtilde;
 	qddot = (qdot1 - qdot0)/h;
 	q1 = q0 + h*qdot1;
