@@ -50,16 +50,18 @@ private:
 		std::unique_ptr<State> &S,
 		std::shared_ptr<State::local_mt> lmt = nullptr,
 		double tol = 1e-6, int maxit = 1000);
-
+    
+#ifdef REDMAX_PARDISO
 	Eigen::VectorXd solvePardiso(std::unique_ptr<StateSolve> &SS,
-		std::unique_ptr<LinkageSystem> &LS,
-		std::unique_ptr<State> &S);
-
+                                 std::unique_ptr<LinkageSystem> &LS,
+                                 std::unique_ptr<State> &S);
+#endif
+    
+    Eigen::VectorXd solvePCG_unopt(std::unique_ptr<StateSolve> &SS,
+                                   std::unique_ptr<LinkageSystem> &LS,
+                                   std::unique_ptr<State> &S);
+    
 	Eigen::VectorXd solvePCG(std::unique_ptr<StateSolve> &SS,
-		std::unique_ptr<LinkageSystem> &LS,
-		std::unique_ptr<State> &S);
-
-	Eigen::VectorXd solvePCG_unopt(std::unique_ptr<StateSolve> &SS,
 		std::unique_ptr<LinkageSystem> &LS,
 		std::unique_ptr<State> &S);
 

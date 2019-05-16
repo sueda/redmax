@@ -22,8 +22,8 @@ if (WIN32)
 		PARDISO_LIBRARY
 		NAMES libpardiso600-WIN-X86-64
 		PATHS
-		$ENV{PROGRAMFILES}/lib
-		${PARDISO_ROOT_DIR})
+		$ENV{PROGRAMFILES}/lib/
+		${PARDISO_ROOT_DIR}/)
 elseif(APPLE)	
 	# Find library files
 	# Try to use static libraries
@@ -31,15 +31,15 @@ elseif(APPLE)
 		PARDISO_LIBRARY
 		NAMES pardiso600-MACOS-X86-64
 		PATHS
-		/usr/lib64
-		/usr/lib
-		/usr/local/lib64
-		/usr/local/lib
-		/sw/lib
-		/opt/local/lib
-		${PARDISO_ROOT_DIR}
-		${PARDISO_ROOT_DIR}/lib
-		${PARDISO_ROOT_DIR}/src
+		/usr/lib64/
+		/usr/lib/
+		/usr/local/lib64/
+		/usr/local/lib/
+		/sw/lib/
+		/opt/local/lib/
+		${PARDISO_ROOT_DIR}/
+		${PARDISO_ROOT_DIR}/lib/
+		${PARDISO_ROOT_DIR}/src/
 		DOC "The PARDISO library")
 else()
 	# Find library files
@@ -48,15 +48,15 @@ else()
 		PARDISO_LIBRARY
 		NAMES pardiso600-MACOS-X86-64
 		PATHS
-		/usr/lib64
-		/usr/lib
-		/usr/local/lib64
-		/usr/local/lib
-		/sw/lib
-		/opt/local/lib
-		${PARDISO_ROOT_DIR}
-		${PARDISO_ROOT_DIR}/lib
-		${PARDISO_ROOT_DIR}/src
+		/usr/lib64/
+		/usr/lib/
+		/usr/local/lib64/
+		/usr/local/lib/
+		/sw/lib/
+		/opt/local/lib/
+		${PARDISO_ROOT_DIR}/
+		${PARDISO_ROOT_DIR}/lib/
+		${PARDISO_ROOT_DIR}/src/
 		DOC "The PARDISO library")
 endif()
 
