@@ -25,8 +25,8 @@ if (WIN32)
 		JSONCPP_INCLUDE_DIR
 		NAMES json/json.h
 		PATHS
-		$ENV{PROGRAMFILES}/include
-		${JSONCPP_ROOT_DIR}/include
+		$ENV{PROGRAMFILES}/include/
+		${JSONCPP_ROOT_DIR}/include/
 		DOC "The directory where jsoncpp/json/json.h or json/json.h resides")
 
 	# Find library files
@@ -34,18 +34,18 @@ if (WIN32)
 		JSONCPP_LIBRARY
 		NAMES jsoncpp
 		PATHS
-		$ENV{PROGRAMFILES}/lib
-		${JSONCPP_ROOT_DIR}/lib
-		${JSONCPP_ROOT_DIR}/src
-        ${JSONCPP_ROOT_DIR}/src/Release
-        ${JSONCPP_ROOT_DIR}/src/Debug)
+		$ENV{PROGRAMFILES}/lib/
+		${JSONCPP_ROOT_DIR}/lib/
+		${JSONCPP_ROOT_DIR}/src/
+        ${JSONCPP_ROOT_DIR}/src/Release/
+        ${JSONCPP_ROOT_DIR}/src/Debug/)
 else()
 	# Find include files
 	find_path(
 		JSONCPP_INCLUDE_DIR
 		NAMES json/json.h
 		PATHS
-		${JSONCPP_ROOT_DIR}/include
+		${JSONCPP_ROOT_DIR}/include/
 		DOC "The directory where jsoncpp/json/json.h or json/json.h resides")
 
 	# Find library files
@@ -54,14 +54,14 @@ else()
 		JSONCPP_LIBRARY
 		NAMES jsoncpp
 		PATHS
-		/usr/lib64
-		/usr/lib
-		/usr/local/lib64
-		/usr/local/lib
-		/sw/lib
-		/opt/local/lib
-		${JSONCPP_ROOT_DIR}/lib
-		${JSONCPP_ROOT_DIR}/src
+		/usr/lib64/
+		/usr/lib/
+		/usr/local/lib64/
+		/usr/local/lib/
+		/sw/lib/
+		/opt/local/lib/
+		${JSONCPP_ROOT_DIR}/lib/
+		${JSONCPP_ROOT_DIR}/src/
 		DOC "The JSONCPP library")
 endif()
 

@@ -19,8 +19,8 @@ if (WIN32)
 		MKL_INCLUDE_DIR
 		NAMES mkl.h
 		PATHS
-		$ENV{PROGRAMFILES}/include
-		${MKL_ROOT_DIR}/include
+		$ENV{PROGRAMFILES}/include/
+		${MKL_ROOT_DIR}/include/
 		DOC "The directory where MKL.h resides")
 
 	# Find library files
@@ -28,20 +28,20 @@ if (WIN32)
 		MKL_LIBRARY
 		NAMES mkl_core mkl_intel_lp64 mkl_sequential
 		PATHS
-		$ENV{PROGRAMFILES}/lib
+		$ENV{PROGRAMFILES}/lib/
 		${MKL_ROOT_DIR}/lib/intel64_win/
-		${MKL_ROOT_DIR}/src)
+		${MKL_ROOT_DIR}/src/)
 else()
 	# Find include files
 	find_path(
 		MKL_INCLUDE_DIR
 		NAMES mkl.h
 		PATHS
-		/usr/include
-		/usr/local/include
-		/sw/include
-		/opt/local/include
-		${MKL_ROOT_DIR}/include
+		/usr/include/
+		/usr/local/include/
+		/sw/include/
+		/opt/local/include/
+		${MKL_ROOT_DIR}/include/
 		DOC "The directory where MKL.h resides")
 
 	# Find library files
@@ -50,14 +50,14 @@ else()
 		MKL_LIBRARY
 		NAMES mkl_core mkl_intel_lp64 mkl_sequential
 		PATHS
-		/usr/lib64
-		/usr/lib
-		/usr/local/lib64
-		/usr/local/lib
-		/sw/lib
-		/opt/local/lib
-		${MKL_ROOT_DIR}/lib
-		${MKL_ROOT_DIR}/src
+		/usr/lib64/
+		/usr/lib/
+		/usr/local/lib64/
+		/usr/local/lib/
+		/sw/lib/
+		/opt/local/lib/
+		${MKL_ROOT_DIR}/lib/
+		${MKL_ROOT_DIR}/src/
 		DOC "The MKL library")
 endif()
 

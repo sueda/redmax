@@ -23,8 +23,8 @@ if (WIN32)
 		GLM_INCLUDE_DIR
 		NAMES glm/glm.hpp
 		PATHS
-		$ENV{PROGRAMFILES}/include
-		${GLM_ROOT_DIR}/include
+		$ENV{PROGRAMFILES}/include/
+		${GLM_ROOT_DIR}/include/
 		${GLM_ROOT_DIR}/
 		DOC "The directory where glm/glm.hpp resides")
 else()
@@ -33,12 +33,12 @@ else()
 		GLM_INCLUDE_DIR
 		NAMES glm/glm.hpp
 		PATHS
-		/usr/include
-		/usr/local/include
-		/sw/include
-		/opt/local/include
+		/usr/include/
+		/usr/local/include/
+		/sw/include/
+		/opt/local/include/
 		$ENV{GLM_ROOT_DIR}/
-		${GLM_ROOT_DIR}/include
+		${GLM_ROOT_DIR}/include/
 		${GLM_ROOT_DIR}/
 		DOC "The directory where glm/glm.hpp resides")
 endif()

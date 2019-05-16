@@ -19,8 +19,8 @@ if (WIN32)
 		GLEW_INCLUDE_DIR
 		NAMES GL/glew.h
 		PATHS
-		$ENV{PROGRAMFILES}/include
-		${GLEW_ROOT_DIR}/include
+		$ENV{PROGRAMFILES}/include/
+		${GLEW_ROOT_DIR}/include/
 		DOC "The directory where GLEW/GLEW.h resides")
 
 	# Find library files
@@ -28,24 +28,24 @@ if (WIN32)
 		GLEW_LIBRARY
 		NAMES glew32s
 		PATHS
-		$ENV{PROGRAMFILES}/lib
-		${GLEW_ROOT_DIR}/lib
+		$ENV{PROGRAMFILES}/lib/
+		${GLEW_ROOT_DIR}/lib/
 		${GLEW_ROOT_DIR}/lib/Release/x64/
 		${GLEW_ROOT_DIR}/lib/Debug/x64/
-		${GLEW_ROOT_DIR}/src
-        ${GLEW_ROOT_DIR}/src/Release
-        ${GLEW_ROOT_DIR}/src/Debug)
+		${GLEW_ROOT_DIR}/src/
+        ${GLEW_ROOT_DIR}/src/Release/
+        ${GLEW_ROOT_DIR}/src/Debug/)
 else()
 	# Find include files
 	find_path(
 		GLEW_INCLUDE_DIR
 		NAMES GL/glew.h
 		PATHS
-		/usr/include
-		/usr/local/include
-		/sw/include
-		/opt/local/include
-		${GLEW_ROOT_DIR}/include
+		/usr/include/
+		/usr/local/include/
+		/sw/include/
+		/opt/local/include/
+		${GLEW_ROOT_DIR}/include/
 		DOC "The directory where GL/GLEW.h resides")
 
 	# Find library files
@@ -54,14 +54,14 @@ else()
 		GLEW_LIBRARY
 		NAMES glew
 		PATHS
-		/usr/lib64
-		/usr/lib
-		/usr/local/lib64
-		/usr/local/lib
-		/sw/lib
-		/opt/local/lib
-		${GLEW_ROOT_DIR}/lib
-		${GLEW_ROOT_DIR}/src
+		/usr/lib64/
+		/usr/lib/
+		/usr/local/lib64/
+		/usr/local/lib/
+		/sw/lib/
+		/opt/local/lib/
+		${GLEW_ROOT_DIR}/lib/
+		${GLEW_ROOT_DIR}/src/
 		DOC "The GLEW library")
 endif()
 

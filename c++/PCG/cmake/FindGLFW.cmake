@@ -26,8 +26,8 @@ if (WIN32)
 		GLFW_INCLUDE_DIR
 		NAMES GLFW/glfw3.h
 		PATHS
-		$ENV{PROGRAMFILES}/include
-		${GLFW_ROOT_DIR}/include
+		$ENV{PROGRAMFILES}/include/
+		${GLFW_ROOT_DIR}/include/
 		DOC "The directory where GLFW/glfw.h resides")
 
 	# Find library files
@@ -35,11 +35,11 @@ if (WIN32)
 		GLFW_LIBRARY
 		NAMES glfw3
 		PATHS
-		$ENV{PROGRAMFILES}/lib
-		${GLFW_ROOT_DIR}/lib
-		${GLFW_ROOT_DIR}/src
-        ${GLFW_ROOT_DIR}/src/Release
-        ${GLFW_ROOT_DIR}/src/Debug)
+		$ENV{PROGRAMFILES}/lib/
+		${GLFW_ROOT_DIR}/lib/
+		${GLFW_ROOT_DIR}/src/
+        ${GLFW_ROOT_DIR}/src/Release/
+        ${GLFW_ROOT_DIR}/src/Debug/)
 
 else()
 	# Find include files
@@ -47,11 +47,11 @@ else()
 		GLFW_INCLUDE_DIR
 		NAMES GLFW/glfw3.h
 		PATHS
-		/usr/include
-		/usr/local/include
-		/sw/include
-		/opt/local/include
-		${GLFW_ROOT_DIR}/include
+		/usr/include/
+		/usr/local/include/
+		/sw/include/
+		/opt/local/include/
+		${GLFW_ROOT_DIR}/include/
 		DOC "The directory where GL/glfw.h resides")
 
 	# Find library files
@@ -60,14 +60,14 @@ else()
 		GLFW_LIBRARY
 		NAMES glfw3
 		PATHS
-		/usr/lib64
-		/usr/lib
-		/usr/local/lib64
-		/usr/local/lib
-		/sw/lib
-		/opt/local/lib
-		${GLFW_ROOT_DIR}/lib
-		${GLFW_ROOT_DIR}/src
+		/usr/lib64/
+		/usr/lib/
+		/usr/local/lib64/
+		/usr/local/lib/
+		/sw/lib/
+		/opt/local/lib/
+		${GLFW_ROOT_DIR}/lib/
+		${GLFW_ROOT_DIR}/src/
 		DOC "The GLFW library")
 endif()
 

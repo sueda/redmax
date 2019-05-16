@@ -6,7 +6,11 @@
 #ifndef EIGEN_NO_STATIC_ASSERT
 #define EIGEN_NO_STATIC_ASSERT
 #endif
+
+#ifdef REDMAX_PARDISO
 #include <Eigen/PardisoSupport>
+#endif
+
 #include <Eigen/SparseCholesky>	
 #include <Eigen/OrderingMethods>
 #include <Eigen/Core>
@@ -233,7 +237,7 @@ void Solver::pcdSaad2003_unopt(Eigen::VectorXd & result, const Eigen::VectorXd &
 	}
 	result = xj;
 }
-
+#ifdef REDMAX_PARDISO
 Eigen::VectorXd Solver::solvePardiso(std::unique_ptr<StateSolve>& SS, std::unique_ptr<LinkageSystem>& LS, std::unique_ptr<State>& S)
 {
 	//ChronoTimer ctime("ldlt", 5);
@@ -559,6 +563,7 @@ Eigen::VectorXd Solver::solvePardiso(std::unique_ptr<StateSolve>& SS, std::uniqu
 
 	return S->qdot;
 }
+#endif
 
 Eigen::VectorXd Solver::solvePCG(std::unique_ptr<StateSolve>& SS, std::unique_ptr<LinkageSystem>& LS, std::unique_ptr<State>& S)
 {
@@ -662,6 +667,7 @@ Eigen::VectorXd Solver::solvePCG(std::unique_ptr<StateSolve>& SS, std::unique_pt
 		Eigen::VectorXd GrTcol1 = ConstraintJoint::computeJT_x(Gmrow1, SS, LS, S);
 		Eigen::VectorXd GrTcol2 = ConstraintJoint::computeJT_x(Gmrow2, SS, LS, S);
         
+        // Run pcg for each row of G
         Eigen::VectorXd MiGt1;
 		Eigen::VectorXd MiGt2;
 		pcdSaad2003(MiGt1, LHSqd, GrTcol1, SS, LS, S);
@@ -753,8 +759,14 @@ Eigen::VectorXd Solver::solvePCG(std::unique_ptr<StateSolve>& SS, std::unique_pt
 		RHS += Gr * qdot1unc;
 
 		// Solve x-by-x system for lambda
+#ifdef REDMAX_PARDISO
 		Eigen::PardisoLDLT< Eigen::SparseMatrix<double>> solver;
-		Eigen::VectorXd lambda = solver.compute(LHS).solve(RHS);
+        Eigen::VectorXd lambda = solver.compute(LHS).solve(RHS);
+#else
+        Eigen::SparseLU< Eigen::SparseMatrix<double>> solver;
+        solver.compute(LHS);
+        Eigen::VectorXd lambda = solver.solve(RHS);
+#endif
 
 		// Solve!
 		GrT.setFromTriplets(GrTlist.begin(), GrTlist.end());
@@ -1073,9 +1085,14 @@ Eigen::VectorXd Solver::solvePCG_unopt(std::unique_ptr<StateSolve>& SS, std::uni
 		RHS += Gr * qdot1unc;
 
 		// Solve x-by-x system for lambda
-		Eigen::PardisoLDLT< Eigen::SparseMatrix<double>> solver;
-		Eigen::VectorXd lambda = solver.compute(LHS).solve(RHS);
-
+#ifdef REDMAX_PARDISO
+        Eigen::PardisoLDLT< Eigen::SparseMatrix<double>> solver;
+        Eigen::VectorXd lambda = solver.compute(LHS).solve(RHS);
+#else
+        Eigen::SparseLU< Eigen::SparseMatrix<double>> solver;
+        solver.compute(LHS);
+        Eigen::VectorXd lambda = solver.solve(RHS);
+#endif
 		// Solve!
 		GrT.setFromTriplets(GrTlist.begin(), GrTlist.end());
 		frtilde -= GrT * lambda;
@@ -1207,8 +1224,10 @@ Eigen::VectorXd Solver::solve(std::unique_ptr<StateSolve> &SS, std::unique_ptr<L
 		result = solvePCG(SS, LS, S);
 	else if (simtype == simType::PCG_unopt)
 		result = solvePCG_unopt(SS, LS, S);
+#ifdef REDMAX_PARDISO
 	else if (simtype == simType::Pardiso)
 		result = solvePardiso(SS, LS, S);
+#endif
 	else
 		std::cerr << "Specified simtype solver has not been set up" << std::endl;
 
