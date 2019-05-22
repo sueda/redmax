@@ -13,9 +13,12 @@
 #endif
 
 #include <glm/gtc/type_ptr.hpp>
+
+#ifdef REDMAX_JSONCPP
 #include <json/writer.h>
 #include <json/value.h>
 #include <json/json.h>
+#endif
 
 #include <iostream>
 #include <fstream>
@@ -48,8 +51,9 @@ RigidBodyMain::RigidBodyMain(const std::string & RESOURCE_DIR, double &t) :
 	S = std::make_unique<State>(t);
 	DS = std::make_unique<StateDeriv>();
 	SS = std::make_unique<StateSolve>();
+#ifdef REDMAX_JSONCPP
 	J = std::make_unique<JSONwrapper>();
-
+#endif
 	creator = std::make_unique<RigidBodyCreator>(t);
 	solver = std::make_unique<Solver>();
 
@@ -739,7 +743,7 @@ void RigidBodyMain::toggleBlockDisplayMode()
 	///rigid_body->loadBridge(pow(2,(n+3)), 1);
 	loadTree(7);
 }
-
+#ifdef REDMAX_JSONCPP
 void RigidBodyMain::exportBrender(std::vector<std::shared_ptr<std::ofstream>> outfiles, int frame, double time) const
 {
 	// print header
@@ -946,6 +950,7 @@ int RigidBodyMain::getBrenderCount() const
 {
 	return 2;
 }
+#endif
 
 bool RigidBodyMain::handleSelectSimType(unsigned int key)
 {

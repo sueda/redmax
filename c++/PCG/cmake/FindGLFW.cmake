@@ -58,7 +58,7 @@ else()
 	# Try to use static libraries
 	find_library(
 		GLFW_LIBRARY
-		NAMES glfw3
+		NAMES glfw3 glfw libglfw.so
 		PATHS
 		/usr/lib64/
 		/usr/lib/

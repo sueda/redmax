@@ -25,9 +25,9 @@
 # Copyright (c) 2009 Benoit Jacob <jacob.benoit.1@gmail.com>
 # Redistribution and use is allowed according to the terms of the 2-clause BSD license.
 
-SET(EIGEN3_INCLUDE_DIR "$ENV{EIGEN3_INCLUDE_DIR}")
+SET(EIGEN3_INCLUDE_DIR ${EIGEN3_ROOT_DIR})
 IF(NOT EIGEN3_INCLUDE_DIR)
-  SET(ERR_MSG "Please point the environment variable EIGEN3_INCLUDE_DIR to the root directory of your EIGEN installation.")
+  SET(ERR_MSG "Please point the variable EIGEN3_ROOT_DIR to the root directory of your EIGEN installation.")
   MESSAGE(FATAL_ERROR ${ERR_MSG})
 ENDIF()
 

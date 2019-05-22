@@ -6,15 +6,19 @@
 #include "Joint.h"
 #include "Rigid.h"
 #include "State.h"
-
+#ifdef REDMAX_JSONCPP
 #include <json/json.h>
+#endif
 #include <iostream>
 #include <vector>
 #include <memory>
 
 static Eigen::Matrix4d idmat44 = Eigen::Matrix4d::Identity();
-
+#ifdef REDMAX_JSONCPP
 struct Block : public Brenderable
+#else
+struct Block
+#endif
 {
 	enum SType { Cuboid, Cylinder};
 
@@ -95,7 +99,7 @@ struct Block : public Brenderable
 		insize = Eigen::Vector3d::Zero();
 		D = damping*Matrix6d::Identity();
 	};
-
+#ifdef REDMAX_JSONCPP
 	virtual void exportBrender(std::vector<std::shared_ptr<std::ofstream>> outfiles, int frame, double time) const
 	{
 		Eigen::Quaterniond quat(joint->E_draw.block<3, 3>(0, 0));
@@ -206,6 +210,7 @@ struct Block : public Brenderable
 
 		return v;
 	}
+#endif
 
 	void updateSpatialIntertia(const std::unique_ptr<State> &S)
 	{

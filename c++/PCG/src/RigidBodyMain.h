@@ -74,8 +74,11 @@ class MatrixStack;
 //	std::shared_ptr<RigidBodyMain> rbm;
 //	int export_part;
 //};
-
+#ifdef REDMAX_JSONCPP
 class RigidBodyMain : public Brenderable
+#else
+class RigidBodyMain
+#endif
 {
 	friend class RigidBodyOptFunc;
 //	friend class BrenderWrapper;
@@ -132,12 +135,13 @@ public:
 	double getCGIterations() const { return solver->trackLastTimestep.num_iterations; };
 	void setSolveType(simType s) { simtype = s; };
 	void toggleBlockDisplayMode() /*{ showInertial = !showInertial; }*/;
-
+#ifdef REDMAX_JSONCPP
 	virtual void exportBrender(std::vector<std::shared_ptr<std::ofstream>> outfiles, int frame, double time) const;
 	virtual std::vector<std::string> getBrenderExtensions() const;
 	virtual std::vector<std::string> getBrenderNames() const;
 	virtual std::vector<int> getBrenderTypes() const;
 	virtual int getBrenderCount() const;
+#endif
 	int export_part;
 
 private:
@@ -170,8 +174,9 @@ private:
 	std::unique_ptr<StateDeriv> DS;
 	std::unique_ptr<StateSolve> SS;
 	std::unique_ptr<LinkageSystem> LS;
+#ifdef REDMAX_JSONCPP
 	std::unique_ptr<JSONwrapper> J;
-
+#endif
 	// used to track sim step in optimization routines
 	// used when validating partial derivatives ?? - this may not be nec.
 	int ct = 0;

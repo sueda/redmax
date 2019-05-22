@@ -21,7 +21,7 @@
 #endif
 #include <glm/gtc/type_ptr.hpp>
 
-#ifndef EIGEN_USE_MKL
+#ifdef REDMAX_MKL
 #define EIGEN_USE_MKL
 #endif
 #ifndef EIGEN_DONT_ALIGN_STATICALLY
@@ -154,11 +154,13 @@ void Scene::batchTest()
 	// rendering?
 	bool render = false;
 	int torend = 0;
+#ifdef REDMAX_JSONCPP
 	if (render)
 	{
 		brender = BrenderManager::getInstance();
 		brender->add(rigid_body);
 	}
+#endif
 
 	// run the scene simulation for 10 simulation seconds and collect data
 	std::vector<std::vector<Eigen::VectorXd>> raw_result;  // ground truth, EXPENSIVE

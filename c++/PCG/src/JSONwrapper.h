@@ -1,5 +1,5 @@
 #pragma once
-
+#ifdef REDMAX_JSONCPP
 #include <json/writer.h>
 #include <json/value.h>
 #include <json/json.h>
@@ -19,3 +19,4 @@ struct JSONwrapper
 		frames = Json::Value(Json::arrayValue);
 	};
 };
+#endif
