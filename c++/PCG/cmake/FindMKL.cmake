@@ -57,6 +57,7 @@ else()
 		/sw/lib/
 		/opt/local/lib/
 		${MKL_ROOT_DIR}/lib/
+		${MKL_ROOT_DIR}/lib/intel64/
 		${MKL_ROOT_DIR}/src/
 		DOC "The MKL library")
 endif()

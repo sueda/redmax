@@ -30,7 +30,7 @@ LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 SET(GLM_ROOT_DIR "/Users/yingwang/Libraries/glm-0.9.9.3")
 SET(GLFW_ROOT_DIR "/Users/yingwang/Libraries/glfw-master")
 SET(GLEW_ROOT_DIR "/Users/yingwang/Libraries/glew-2.1.0")
-SET(EIGEN3_ROOT_DIR "/Users/yingwang/Libraries/eigen-eigen-6c3592226be0")
+SET(EIGEN3_ROOT_DIR "/Users/yingwang/Libraries/eigen-eigen-08a1f23d4f46")
 SET(MKL_ROOT_DIR "/opt/intel/mkl")
 SET(PARDISO_ROOT_DIR "/Users/yingwang/Libraries/pardiso")
 SET(JSONCPP_ROOT_DIR "/Users/yingwang/Libraries/jsoncpp-0.10.7")
@@ -40,7 +40,9 @@ SET(JSONCPP_ROOT_DIR "/Users/yingwang/Libraries/jsoncpp-0.10.7")
 OPTION(SOL "Solution" OFF)
 ### Available options ###
 
-OPTION(REDMAX_WITH_PARDISO  "Use PARDISO"  OFF)
+OPTION(REDMAX_WITH_PARDISO  "Use PARDISO"  ON)
+OPTION(REDMAX_WITH_JSONCPP  "Use JSONCPP"  ON)
+OPTION(REDMAX_WITH_MKL      "Use MKL"      ON)
 
 ################################################################################
 
@@ -179,15 +181,21 @@ ENDIF()
 
 ################################################################################
 ### Compile the JSONCPP part ###
-find_package (JSONCPP REQUIRED)
-INCLUDE_DIRECTORIES(${JSONCPP_INCLUDE_DIRS})
-TARGET_LINK_LIBRARIES(${CMAKE_PROJECT_NAME} ${JSONCPP_LIBRARIES})
+IF(REDMAX_WITH_JSONCPP)
+  find_package (JSONCPP REQUIRED)
+  INCLUDE_DIRECTORIES(${JSONCPP_INCLUDE_DIRS})
+  TARGET_LINK_LIBRARIES(${CMAKE_PROJECT_NAME} ${JSONCPP_LIBRARIES})
+  ADD_DEFINITIONS(-DREDMAX_JSONCPP)
+ENDIF()
 
 ################################################################################
 ### Compile the MKL part ###
-find_package (MKL REQUIRED)
-INCLUDE_DIRECTORIES(${MKL_INCLUDE_DIRS})
-TARGET_LINK_LIBRARIES(${CMAKE_PROJECT_NAME} ${MKL_LIBRARIES})
+IF(REDMAX_WITH_MKL)
+  find_package (MKL REQUIRED)
+  INCLUDE_DIRECTORIES(${MKL_INCLUDE_DIRS})
+  TARGET_LINK_LIBRARIES(${CMAKE_PROJECT_NAME} ${MKL_LIBRARIES})
+  ADD_DEFINITIONS(-DREDMAX_MKL)
+ENDIF()
 
 # # CMAES stuff
 # SET(CMAES_INCLUDE_DIR "$ENV{CMAES_INCLUDE_DIR}")
@@ -306,11 +314,12 @@ IF(WIN32)
   TARGET_LINK_LIBRARIES(${CMAKE_PROJECT_NAME} opengl32.lib)
 ELSE()
   # Enable all pedantic warnings.
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -pedantic")
   IF(APPLE)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -pedantic")
     # Add required frameworks for GLFW.
     TARGET_LINK_LIBRARIES(${CMAKE_PROJECT_NAME} "-framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo")
   ELSE()
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -pedantic -pthread")
     #Link the Linux OpenGL library
     TARGET_LINK_LIBRARIES(${CMAKE_PROJECT_NAME} "GL")
   ENDIF()

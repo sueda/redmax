@@ -19,7 +19,6 @@
 #include <fstream>
 #include <iomanip>
 #include <chrono>
-
 int count = 0;
 
 void Solver::loadMSparse(std::unique_ptr<StateSolve>& SS, std::unique_ptr<LinkageSystem>& LS, std::unique_ptr<State>& S)

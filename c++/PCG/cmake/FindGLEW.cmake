@@ -52,7 +52,7 @@ else()
 	# Try to use static libraries
 	find_library(
 		GLEW_LIBRARY
-		NAMES glew
+		NAMES GLEW libglew.so libGLEW.so
 		PATHS
 		/usr/lib64/
 		/usr/lib/

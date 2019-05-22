@@ -52,7 +52,7 @@ else()
 	# Try to use static libraries
 	find_library(
 		JSONCPP_LIBRARY
-		NAMES jsoncpp
+		NAMES jsoncpp libjsoncpp
 		PATHS
 		/usr/lib64/
 		/usr/lib/
