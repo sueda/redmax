@@ -1,0 +1,1 @@
+We provide a reference implementation of the RedMax algorithm, written in object-oriented MATLAB (2018b). This code is not de- signed for performance but is rather designed for pedagogical pur- poses. Since it is object-oriented, porting to a more performant language should be straight-forward. To run the code, go to the directory containing testRedMax.m and type:
