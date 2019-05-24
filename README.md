@@ -2,7 +2,7 @@
 
 #### Ying Wang, Nicholas J. Weidner, Margaret A. Baxter, Yura Hwang, Danny M. Kaufman, Shinjiro Sueda
 
-### ACM Transactions on Graphics, 38 (4) XX:1-XX:10 (SIGGRAPH), 2019.
+### ACM Transactions on Graphics, 38 (4) 104:1-104:10 (SIGGRAPH), 2019.
 
 Source folders:
 - `c++`: C++ implementation including Projected Block Jacobi Preconditioner
