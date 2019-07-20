@@ -22,7 +22,7 @@ if nargin < 3
 	drawScene = true;
 end
 if nargin < 2
-	sceneID = 0;
+	sceneID = 1;
 end
 if nargin < 1
 	itype = 1;
@@ -31,7 +31,7 @@ end
 % To run in batch mode, run the following:
 % clear; clc;
 % for itype = 1 : 3
-% 	for sceneID = 0 : 33
+% 	for sceneID = 0 : 34
 % 		testRedMax(itype,sceneID,false,false);
 % 	end
 % end
@@ -71,6 +71,7 @@ end
 % 31: External friction
 % 32: Prescribed joint via maximal constraint
 % 33: External friction 4-bar linkage
+% 34: Gears
 scene = testRedMaxScenes(itype,sceneID);
 
 % Initialize

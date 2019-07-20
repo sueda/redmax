@@ -16,6 +16,7 @@ classdef ConstraintMultQ < redmax.Constraint
 			this.name = [jointA.name,'-Q-',jointB.name];
 			this.jointA = jointA;
 			this.jointB = jointB;
+			this.factor = 1.0;
 			rev = 'redmax.JointRevolute';
 			if ~isa(jointA,rev) || ~isa(jointB,rev)
 				error('ConstraintMultQ only works between revolute joints');

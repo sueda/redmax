@@ -1079,6 +1079,59 @@ switch(sceneID)
 		% Prescribed driver
 		scene.constraints{end+1} = redmax.ConstraintPrescJointM(scene.joints{2},vel);
 		scene.sceneFcn = @sceneFcn33;
+	case 34
+		scene.name = 'Gears';
+		% cm g s
+		scene.tspan = [0 1];
+		scene.hEuler = 1e-2;
+		scene.drawHz = 100;
+		rng(0);
+		scene.waxis = [-7 7 -2 2 -7 3];
+		scene.Hexpected(RECURS_ODE45) = -0.1839463800694148;
+		scene.Hexpected(REDMAX_ODE45) = -0.1839463800738486;
+		scene.Hexpected(REDMAX_EULER) = -39.5338848225347874;
+		E0 = [se3.aaToMat([1 0 0],pi/2),[0 0 0]'; 0 0 0 1]; % body transform for gear
+		% Main bar
+		scene.bodies{1} = redmax.BodyCuboid(density,[1 1 6]);
+		scene.joints{1} = redmax.JointFixed([],scene.bodies{1});
+		scene.joints{1}.setJointTransform([se3.aaToMat([0 0 1],pi),[0 0 0]';0 0 0 1]);
+		scene.bodies{1}.setBodyTransform(eye(4));
+		scene.joints{1}.q = pi/2;
+		% Top axle
+		scene.bodies{2} = redmax.BodyCylinder(density,0.2,3.5);
+		scene.joints{2} = redmax.JointRevolute(scene.joints{1},scene.bodies{2},[0 1 0]');
+		scene.joints{2}.setGeometry(0.1,0.1);
+		scene.joints{2}.setJointTransform([eye(3),[0 -0.25 2]';0 0 0 1]);
+		scene.bodies{2}.setBodyTransform([se3.aaToMat([1 0 0],pi/2),[0 0 0]';0 0 0 1]);
+		% Top gear
+		scene.bodies{3} = redmax.BodyMeshObj(0.1*density,'gears.obj');
+		scene.joints{3} = redmax.JointFixed(scene.joints{2},scene.bodies{3});
+		scene.joints{3}.setJointTransform([eye(3),[0 -0.35 0]'; 0 0 0 1]);
+		scene.bodies{3}.setBodyTransform(E0 * scene.bodies{3}.E_oi);
+		% Bottom axle
+		scene.bodies{4} = redmax.BodyCylinder(density,0.2,3.0);
+		scene.joints{4} = redmax.JointRevolute(scene.joints{1},scene.bodies{4},[0 1 0]');
+		scene.joints{4}.setGeometry(0.1,0.1);
+		scene.joints{4}.setJointTransform([eye(3),[0 -0.5 -2]';0 0 0 1]);
+		scene.bodies{4}.setBodyTransform([se3.aaToMat([1 0 0],pi/2),[0 0 0]';0 0 0 1]);
+		% Bottom gear
+		scene.bodies{5} = redmax.BodyMeshObj(0.1*density,'gears.obj');
+		scene.joints{5} = redmax.JointFixed(scene.joints{4},scene.bodies{5});
+		scene.joints{5}.setJointTransform([eye(3),[0 -0.1 0]'; 0 0 0 1]);
+		scene.bodies{5}.setBodyTransform(E0 * scene.bodies{5}.E_oi);
+		% Bottom bar
+		scene.bodies{6} = redmax.BodyCuboid(density,[5 0.25 0.25]);
+		scene.joints{6} = redmax.JointFixed(scene.joints{4},scene.bodies{6});
+		scene.joints{6}.setJointTransform([eye(3),[0 0 0]'; 0 0 0 1]);
+		scene.bodies{6}.setBodyTransform([eye(3),[0 1.5 0]'; 0 0 0 1]);
+		% Top bar
+		scene.bodies{7} = redmax.BodyCuboid(density,[7 0.25 0.25]);
+		scene.joints{7} = redmax.JointFixed(scene.joints{2},scene.bodies{7});
+		scene.joints{7}.setJointTransform([eye(3),[0 0 0]'; 0 0 0 1]);
+		scene.bodies{7}.setBodyTransform([eye(3),[2 1.75 0]'; 0 0 0 1]);
+		% Constraint
+		scene.constraints{1} = redmax.ConstraintMultQ(scene.joints{2},scene.joints{4});
+		scene.constraints{1}.setFactor(-1.0);
 end
 
 end

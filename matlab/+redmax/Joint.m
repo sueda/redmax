@@ -13,6 +13,8 @@ classdef (Abstract) Joint < handle
 		q        % Position
 		qdot     % Velocity
 		qddot    % Acceleration
+		qPrev    % Previous position
+		qdotPrev % Previous velocity
 		qInit    % Initial position (for joint stiffness)
 		tau      % Joint torque
 		tauCon   % Constraint torque
@@ -76,6 +78,8 @@ classdef (Abstract) Joint < handle
 			this.q = zeros(ndof,1);
 			this.qdot = zeros(ndof,1);
 			this.qddot = zeros(ndof,1);
+			this.qPrev = zeros(ndof,1);
+			this.qdotPrev = zeros(ndof,1);
 			this.tau = zeros(ndof,1);
 			this.tauCon = zeros(ndof,1);
 			this.Kr = 0;
@@ -187,6 +191,8 @@ classdef (Abstract) Joint < handle
 		function scatterDofs(this,y)
 			% Scatters q and qdot from y
 			nr = redmax.Scene.countR();
+			this.qPrev = this.q;
+			this.qdotPrev = this.qdot;
 			this.q(1:this.ndof) = y(this.idxR);
 			this.qdot(1:this.ndof) = y(nr + this.idxR);
 			this.update(); % safe to call with forward traversal
@@ -199,6 +205,7 @@ classdef (Abstract) Joint < handle
 		function scatterDDofs(this,ydot)
 			% Scatters qdot and qddot from ydot
 			nr = redmax.Scene.countR();
+			this.qdotPrev = this.qdot;
 			this.qdot(1:this.ndof) = ydot(this.idxR);
 			this.qddot(1:this.ndof) = ydot(nr + this.idxR);
 			if ~isempty(this.next)
