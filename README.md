@@ -4,7 +4,6 @@
 
 ### ACM Transactions on Graphics, 38 (4) 104:1-104:10 (SIGGRAPH), 2019.
 
-Source folders:
 - `c++`: C++ implementation including Projected Block Jacobi Preconditioner
 - `matlab-simple`: Simpler object-oriented MATLAB implementation for getting started
 - `matlab`: Object-oriented MATLAB implementation with many features, including:
@@ -12,3 +11,4 @@ Source folders:
   - Time integration using `ode45` or `euler`
   - Frictional dynamics with Bilateral Staggered Projections
   - Spline curve and surface joints [Lee and Terzopoulos 2008]
+- `notes.pdf`: An extensive writeup with details on maximal and reduced coordinates. The sample code is in `matlab-simple`.
