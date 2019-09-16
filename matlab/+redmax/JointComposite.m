@@ -53,7 +53,7 @@ classdef JointComposite < redmax.Joint
 			
 			S1 = this.joint1.S;
 			S2 = this.joint2.S;
-			Ad_21 = se3.Ad(Q2);
+			Ad_21 = se3.Ad(se3.inv(Q2));
 			this.S(1:6,idx1) = Ad_21*S1;
 			this.S(1:6,idx2) = S2;
 			
