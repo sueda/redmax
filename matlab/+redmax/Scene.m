@@ -21,7 +21,6 @@ classdef Scene < handle
 		SPreg
 		waxis
 		Hexpected
-		floorZ
 		sceneFcn
 	end
 	
