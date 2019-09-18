@@ -1132,6 +1132,40 @@ switch(sceneID)
 		% Constraint
 		scene.constraints{1} = redmax.ConstraintMultQ(scene.joints{2},scene.joints{4});
 		scene.constraints{1}.setFactor(-1.0);
+	case 35
+		scene.name = '2D free joint';
+		scene.waxis = [-20 20 -20 20 -1 1];
+		scene.view = 2;
+		scene.tspan = [0 10];
+		scene.Hexpected(RECURS_ODE45) = 167.0835245643339135;
+		scene.Hexpected(REDMAX_ODE45) = 167.0835245643319240;
+		scene.Hexpected(REDMAX_EULER) = 166.9232451756938644;
+		scene.grav = [0 -1 0]';
+		l0 = 10;
+		l1 = 10;
+		% Parent
+		scene.bodies{1} = redmax.BodyCuboid(density,[l0 1 1]);
+		if false
+			% Use composite joint
+			revolute = redmax.JointRevolute([],scene.bodies{1},[0 0 1]');
+			planar = redmax.JointPlanar([],scene.bodies{1});
+			scene.joints{1} = redmax.JointComposite([],scene.bodies{1},planar,revolute);
+		else
+			% Use 2D free joint
+			scene.joints{1} = redmax.JointFree2D([],scene.bodies{1});
+		end
+		scene.joints{1}.setJointTransform(eye(4));
+		scene.bodies{1}.setBodyTransform(eye(4));
+		% Child
+		scene.bodies{2} = redmax.BodyCuboid(density,[l1 1 1]);
+		scene.joints{2} = redmax.JointRevolute(scene.joints{1},scene.bodies{2},[0 0 1]');
+		scene.joints{2}.setJointTransform([eye(3),[l0/2 0 0]'; 0 0 0 1]);
+		scene.bodies{2}.setBodyTransform([eye(3),[l1/2 0 0]'; 0 0 0 1]);
+		% Initial conditions
+		scene.joints{1}.q(1:2) = [0 0]';
+		scene.joints{1}.qdot(1:2) = [0 0]';
+		scene.joints{1}.qdot(3) = 1;
+		scene.joints{2}.qdot(1) = -1;
 end
 
 end

@@ -31,7 +31,7 @@ end
 % To run in batch mode, run the following:
 % clear; clc;
 % for itype = 1 : 3
-% 	for sceneID = 0 : 34
+% 	for sceneID = 0 : 35
 % 		testRedMax(itype,sceneID,false,false);
 % 	end
 % end
@@ -72,6 +72,7 @@ end
 % 32: Prescribed joint via maximal constraint
 % 33: External friction 4-bar linkage
 % 34: Gears
+% 35: 2D free joint
 scene = testRedMaxScenes(itype,sceneID);
 
 % Initialize

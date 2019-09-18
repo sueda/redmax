@@ -20,6 +20,7 @@ classdef Scene < handle
 		SPathresh
 		SPreg
 		waxis
+		view
 		Hexpected
 		sceneFcn
 	end
@@ -46,6 +47,7 @@ classdef Scene < handle
 			this.SPathresh = 1e-10;
 			this.SPreg = 1e-6;
 			this.waxis = [];
+			this.view = 3;
 			this.Hexpected = zeros(3,1);
 			this.sceneFcn = @redmax.Scene.sceneFcnNull;
 		end
@@ -130,7 +132,7 @@ classdef Scene < handle
 				ax = gca;
 				ax.Clipping = 'off';
 				grid on;
-				view(3);
+				view(this.view); %#ok<CPROPLC>
 			end
 			this.sceneFcn(t,this);
 			cla;
