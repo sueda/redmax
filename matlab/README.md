@@ -27,7 +27,7 @@ To run all the test cases, copy and paste the following into the command window:
 ```
 clear; clc;
 for itype = 1 : 3
-  for sceneID = 0 : 33
+  for sceneID = 0 : 35
     testRedMax(itype,sceneID,false,false);
   end
 end
