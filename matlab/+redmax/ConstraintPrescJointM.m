@@ -1,6 +1,6 @@
 classdef ConstraintPrescJointM < redmax.Constraint
 	% ConstraintPrescJointM Prescribes body motion in maximal coords
-	% Only works with revolute joints
+	% Only works with revolute joints and with velocity-level Euler
 	
 	%%
 	properties
@@ -39,9 +39,19 @@ classdef ConstraintPrescJointM < redmax.Constraint
 			Ad_wp = this.joint.parent.body.Ad_wi;
 			GmI = Ad_ji;
 			GmP = -Ad_ji*Ad_iw*Ad_wp;
-			% Assumes revolute around Y-axis
-			Gm(rows,colsI) = GmI(2,:);
-			Gm(rows,colsP) = GmP(2,:);
+			if sum(this.joint.axis == [1 0 0]') == 3
+				% Revolute around X-axis
+				Gm(rows,colsI) = GmI(1,:);
+				Gm(rows,colsP) = GmP(1,:);
+			elseif sum(this.joint.axis == [0 1 0]') == 3
+				% Revolute around Y-axis
+				Gm(rows,colsI) = GmI(2,:);
+				Gm(rows,colsP) = GmP(2,:);
+			elseif sum(this.joint.axis == [0 0 1]') == 3
+				% Revolute around Z-axis
+				Gm(rows,colsI) = GmI(3,:);
+				Gm(rows,colsP) = GmP(3,:);
+			end
 			if this.vel
 				gmdot(rows) = this.qdot; % Y-axis rotation
 			else
