@@ -534,12 +534,24 @@ switch(sceneID)
 		scene.waxis = 5*[-0.2 0.2 -0.2 0.2 -1.0 1.0];
 		scene.Hexpected(RECURS_ODE45) = 4.5466342688068826;
 		scene.Hexpected(REDMAX_ODE45) = 4.5466342688068924;
-		scene.Hexpected(REDMAX_EULER) = 4.6566660480208437;
+		scene.Hexpected(REDMAX_EULER) = 4.5116666666668817;
 		scene.bodies{1} = redmax.BodyCuboid(density,[1 1 1]);
-		scene.joints{1} = redmax.JointFree([],scene.bodies{1});
+		freeType = 2;
+		if freeType == 1
+			scene.joints{1} = reduced.JointFree([],scene.bodies{1});
+			scene.joints{1}.qdot = [0.2 0.4 0.6 0 0 3]';
+		elseif freeType == 2
+			% This is the best
+			scene.joints{1} = reduced.JointFree3D([],scene.bodies{1});
+			scene.joints{1}.qdot = [ 0 0 3 0.2 0.4 0.6]';
+		elseif freeType == 3
+			jointT = reduced.JointTranslational([],scene.bodies{1});
+			jointS = reduced.JointSphericalExp([],scene.bodies{1});
+			scene.joints{1} = reduced.JointComposite([],scene.bodies{1},jointT,jointS);
+			scene.joints{1}.qdot = [0 0 3 0.2 0.4 0.6]';
+		end
 		scene.joints{1}.setJointTransform(eye(4));
 		scene.bodies{1}.setBodyTransform(eye(4));
-		scene.joints{1}.qdot = [0.2 0.4 0.6 0 0 3]';
 	case 19
 		scene.name = 'Composite joint';
 		scene.hEuler = 2e-2;
