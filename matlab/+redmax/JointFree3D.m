@@ -45,12 +45,13 @@ classdef JointFree3D < redmax.Joint
 			this.Q = Q1*Q2;
 			
 			S2 = this.joint2.S;
+			S2hat = S2(1:3,1:3);
 			R_21 = Q2(1:3,1:3)';
 			this.S(4:6,1:3) = R_21;
-			this.S(1:3,4:6) = S2(1:3,1:3);
+			this.S(1:3,4:6) = S2hat;
 			
 			dS2 = this.joint2.Sdot;
-			this.Sdot(4:6,1:3) = -se3.brac(this.qdot(4:6))*R_21;
+			this.Sdot(4:6,1:3) = -se3.brac(S2hat*this.qdot(4:6))*R_21;
 			this.Sdot(1:3,4:6) = dS2(1:3,1:3);
 		end
 	end
