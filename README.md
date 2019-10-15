@@ -1,8 +1,8 @@
 # REDMAX: Efficient & Flexible Approach for Articulated Dynamics
 
-#### Ying Wang, Nicholas J. Weidner, Margaret A. Baxter, Yura Hwang, Danny M. Kaufman, Shinjiro Sueda
-
 ### ACM Transactions on Graphics, 38 (4) 104:1-104:10 (SIGGRAPH), 2019.
+
+[Ying Wang](http://www.yingwang.io/), [Nicholas J. Weidner](http://weidnern.github.io/), [Margaret A. Baxter](https://www.linkedin.com/in/baxter-margareta/), [Yura Hwang](http://yurahwang.com/), [Danny M. Kaufman](http://dannykaufman.io), [Shinjiro Sueda](http://faculty.cs.tamu.edu/sueda/)
 
 - `c++`: C++ implementation including Projected Block Jacobi Preconditioner
 - `matlab-simple`: Simpler object-oriented MATLAB implementation for getting started
