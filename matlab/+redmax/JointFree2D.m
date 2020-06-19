@@ -34,17 +34,17 @@ classdef JointFree2D < redmax.Joint
 			Qr = this.jointR.Q;
 			this.Q = Qp*Qr;
 			
-			rx = Qr(1,1:3);
-			ry = Qr(2,1:3);
+			s = sin(this.q(3));
+			c = cos(this.q(3));
 			qdotr = this.qdot(3);
 			
 			this.S = [
-				0 0 0 rx
-				0 0 0 ry
+				0 0 0 c -s 0
+				0 0 0 s c 0
 				0 0 1 0 0 0]';
 			this.Sdot = [
-				0 0 0 qdotr*rx(2) -qdotr*rx(1) 0
-				0 0 0 qdotr*ry(2) -qdotr*ry(1) 0
+				0 0 0 -qdotr*s -qdotr*c 0
+				0 0 0 qdotr*c -qdotr*s 0
 				0 0 0 0 0 0]';
 		end
 	end
