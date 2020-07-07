@@ -11,4 +11,4 @@
   - Time integration using `ode45` or `euler`
   - Frictional dynamics with Bilateral Staggered Projections
   - Spline curve and surface joints [Lee and Terzopoulos 2008]
-- `notes.pdf`: An extensive writeup with details on maximal and reduced coordinates. The sample code is in `matlab-simple`.
+- `notes.pdf`: An extensive writeup with details on maximal and reduced coordinates, including various derivatives and BDF1/BDF2 time integration. The sample code is in `matlab-simple`.
