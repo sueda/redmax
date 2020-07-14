@@ -1,4 +1,4 @@
-classdef Force < handle
+classdef (Abstract) Force < handle
 	%Force Massless force acting on bodies
 	
 	%%

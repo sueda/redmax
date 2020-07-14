@@ -2,24 +2,29 @@ classdef Scene < handle
 	%Scene Test scenes for redmax
 	
 	properties
-		name
-		bodies
-		joints
-		forces
-		tspan
+		name % scene name
+		bodies % list of bodies
+		joints % list of joints
+		forces % list of forces
+		tEnd % end time
+		qInit % initial positions
+		qdotInit % initial velocities
 		t % current time
 		h % time step
 		k % current step
-		ts % times
-		Vs % potential energies
-		Ts % kinetic energies
-		grav
-		drawHz
-		view
-		waxis
-		computeH
-		plotH
-		Hexpected
+		T0 % initial kinetic energy
+		V0 % initial potential energy
+		history % step history: does not include the initial state
+		nsteps % number of steps to take
+		grav % gravity
+		drawHz % refresh rate (0 for no draw)
+		view % initial viewing angle
+		waxis % initial axis
+		computeH % whether to compute the energy
+		plotH % whether to plot the energy at the end
+		Hexpected % expected energy
+		task % task for the adjoint method
+		solverInfo % solver info for the current step
 	end
 	
 	methods
@@ -30,13 +35,16 @@ classdef Scene < handle
 			this.bodies = {};
 			this.joints = {};
 			this.forces = {};
-			this.tspan = [0 1];
+			this.tEnd = 1;
+			this.qInit = [];
+			this.qdotInit = [];
 			this.h = 1e-2;
 			this.t = 0;
 			this.k = 0;
-			this.ts = [];
-			this.Vs = [];
-			this.Ts = [];
+			this.T0 = 0;
+			this.V0 = 0;
+			this.history = [];
+			this.nsteps = 0;
 			this.grav = [0 0 -980]';
 			this.drawHz = 15;
 			this.view = 3;
@@ -44,6 +52,8 @@ classdef Scene < handle
 			this.computeH = true;
 			this.plotH = true;
 			this.Hexpected = zeros(1,2);
+			this.task = [];
+			this.solverInfo = [];
 		end
 		
 		function init(this)
@@ -89,6 +99,7 @@ classdef Scene < handle
 			
 			% Update all
 			joint0.update();
+			[this.qInit,this.qdotInit] = joint0.getQ();
 			
 			% Initialize bodies
 			nbodies = length(this.bodies);
@@ -100,28 +111,60 @@ classdef Scene < handle
 				end
 			end
 			
-			% Initial energy
-			this.t = 0;
-			this.k = 0;
-			this.computeEnergies();
+			% Other initial values
+			this.nsteps = ceil(this.tEnd/this.h);
+			this.reset();
 		end
 		
 		%%
-		function computeEnergies(this)
+		function reset(this)
+			this.joints{1}.setQ(this.qInit,this.qdotInit);
+			this.t = 0;
+			this.k = 0;
+			[this.T0,this.V0] = this.joints{1}.computeEnergies(this.grav);
+			this.V0 = this.forces{1}.computeEnergy(this.V0);
+			if ~isempty(this.task)
+				this.task.P = 0;
+			end
+		end
+		
+		%%
+		function saveHistory(this,GL,GU,Gp,M,f,K,D,J)
+			[q,qdot] = this.joints{1}.getQ();
+			this.history(this.k).q = q;
+			this.history(this.k).qdot = qdot;
+			% TODO: may need to store other info (eg Euler angle chart)
+			if ~isempty(this.task)
+				% Used by the adjoint method
+				this.history(this.k).GL = GL;
+				this.history(this.k).GU = GU;
+				this.history(this.k).Gp = Gp;
+				this.history(this.k).M = M;
+				this.history(this.k).f = f;
+				this.history(this.k).K = K;
+				this.history(this.k).D = D;
+				this.history(this.k).J = J;
+			end
+			if ~isempty(this.task)
+				% Used by the adjoint method
+				this.task.calcStep();
+			end
 			if this.computeH
 				[T,V] = this.joints{1}.computeEnergies(this.grav);
 				V = this.forces{1}.computeEnergy(V);
-				this.Ts(end+1) = T;
-				this.Vs(end+1) = V;
-				this.ts(end+1) = this.t;
+				this.history(this.k).T = T;
+				this.history(this.k).V = V;
+				this.history(this.k).t = this.t;
 			end
 		end
 		
 		%%
 		function plotEnergies(this,itype)
 			if this.computeH
-				T = this.Ts;
-				V = this.Vs - this.Vs(1);
+				T = [this.T0,this.history.T];
+				V = [this.V0,this.history.V];
+				t = [0,this.history.t]; %#ok<PROPLC>
+				V = V - V(1);
 				H = T + V;
 				dH = H(end) - this.Hexpected(itype);
 				if abs(dH) > 1e-2
@@ -131,9 +174,9 @@ classdef Scene < handle
 				end
 				if this.plotH
 					clf;
-					plot(this.ts,T,'.-',this.ts,V,'.-',this.ts,H,'.-');
+					plot(t,T,'.-',t,V,'.-',t,H,'.-'); %#ok<PROPLC>
 					a = axis();
-					a(2) = this.ts(end);
+					a(2) = t(end); %#ok<PROPLC>
 					axis(a);
 					grid on;
 					legend('T','V','H');
@@ -163,6 +206,9 @@ classdef Scene < handle
 				hold on;
 				this.bodies{1}.draw();
 				this.joints{1}.draw();
+				if ~isempty(this.task)
+					this.task.draw();
+				end
 				title(sprintf('t = %.4f',this.t));
 				drawnow;
 			end
@@ -189,11 +235,11 @@ classdef Scene < handle
 			[fr,Kr,Dr] = joint0.computeForce();
 			
 			% Inertia
-			Mr = J'*Mm*J;
-			dMrdq = zeros(nr,nr,nr);
+			M = J'*Mm*J;
+			dMdq = zeros(nr,nr,nr);
 			for i = 1 : nr
 				tmp = J'*Mm*dJdq(:,:,i);
-				dMrdq(:,:,i) = tmp' + tmp;
+				dMdq(:,:,i) = tmp' + tmp;
 			end
 			
 			% Quadratic velocity vector
@@ -248,7 +294,7 @@ classdef Scene < handle
 			redmax.Scene.printError('dJdot/dq',dJdotdq_,dJdotdq);
 			
 			% Test inertia
-			dMrdq_ = zeros(nr,nr,nr);
+			dMdq_ = zeros(nr,nr,nr);
 			for i = 1 : nr
 				q_ = q;
 				q_(i) = q_(i) + sqrteps;
@@ -257,10 +303,10 @@ classdef Scene < handle
 				J_ = joint0.computeJacobian();
 				joint0.setQ(q);
 				joint0.update();
-				Mr_ = J_'*Mm*J_;
-				dMrdq_(:,:,i) = (Mr_ - Mr)/sqrteps;
+				M_ = J_'*Mm*J_;
+				dMdq_(:,:,i) = (M_ - M)/sqrteps;
 			end
-			redmax.Scene.printError('dMr/dq',dMrdq_,dMrdq);
+			redmax.Scene.printError('dM/dq',dMdq_,dMdq);
 			
 			% Test quadratic velocity vector
 			Kqvv_ = zeros(nr,nr);

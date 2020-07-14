@@ -1,52 +1,64 @@
-function driverRedMaxBDF2(sceneID,batch)
-% driverRedMaxBDF2 Reference implementation of the RedMax algorithm
-% 
-% sceneID: What scene to run.
-%    0: Simple serial chain
-%    1: Different revolute axes
-%    2: Branching
-%    3: Prismatic joint
-%    4: Planar joint
-%    5: Translational joint
-%    6: Free2D joint
-%    7: Spherical joint
-%    8: Universal joint
-%    9: Free3D joint
-%    10: Loop
-%
-%{
-% To run in batch mode, run the following:
-clear; clc;
-for sceneID = 0 : 10
-	driverRedMaxBDF2(sceneID,true)
-end
-%}
+function driverRedMaxAdjointBDF2()
+% driverRedMaxAdjointBDF2 Reference implementation of the RedMax algorithm
 
-if nargin < 1
-	sceneID = 0;
-end
-if nargin < 2
-	batch = false;
-end
-
+sceneID = 101;
 scene = scenesRedMax(sceneID);
+scene.drawHz = 0;
 scene.init();
-if batch
-	scene.drawHz = 0;
-	scene.computeH = true;
-	scene.plotH = false;
-else
-	scene.test();
-	scene.draw();
-end
+scene.draw();
 
 fprintf('(%d) ''%s'': tEnd=%.1f, nsteps=%d, nr=%d, nm=%d\n',...
 	sceneID,scene.name,scene.tEnd,scene.nsteps,...
 	redmax.Scene.countR(),redmax.Scene.countM());
 
-simLoop(scene);
-scene.plotEnergies(2);
 
+% Optimize
+pInit = scene.task.p;
+opts = optimoptions(@fminunc,...
+	'Display','iter-detailed',...
+	'SpecifyObjectiveGradient',true,...
+	'CheckGradients',false...
+	);
+tic
+p = fminunc(@(p)taskObjective(p,scene),pInit,opts);
+toc
+fprintf('p = [\n');
+disp(p);
+fprintf('\b];\n');
+
+% Show the result
+scene.drawHz = 15;
+scene.reset();
+scene.task.p = p;
+scene.task.init();
+simLoop(scene);
+
+end
+
+%%
+function [P,dPdp] = taskObjective(p,scene)
+scene.reset();
+scene.task.p = p;
+scene.task.init();
+simLoop(scene);
+[P,dPdp] = scene.task.calcFinal();
+
+% Finite difference test
+testGrad = false;
+if testGrad
+	dPdp_ = zeros(1,length(p)); %#ok<UNRCH>
+	for i = 1 : length(p)
+		p_ = p;
+		p_(i) = p_(i) + sqrt(eps);
+		scene.reset();
+		scene.task.p = p_;
+		scene.task.init();
+		simLoop(scene);
+		P_ = scene.task.calcFinal();
+		dPdp_(:,i) = (P_ - P)/sqrt(eps);
+	end
+	redmax.Scene.printError('dPdp',dPdp_,dPdp);
+end
 end
 
 %%
@@ -58,6 +70,9 @@ nsteps = scene.nsteps;
 
 % Integrate
 for k = 0 : nsteps-1
+	% Apply parameters
+	scene.task.applyStep();
+	
 	if k == 0
 		% Take an SDIRK step
 		% To compute the values at (1), we take two substeps
@@ -78,7 +93,7 @@ for k = 0 : nsteps-1
 		
 		% SDIRK2b
 		q1 = qa + (1-a)*h*qdota; % initial guess
-		q1 = newton(@(q1)evalSDIRK2b(q1,scene),q1);
+		[q1,GL,GU,Gp,M,f,K,D,J] = newton(@(q1)evalSDIRK2b(q1,scene),q1);
 		qdot1 = (q1 - q0 - (1-a)*h*qdota)/(a*h);
 		
 		% Save new state
@@ -97,7 +112,7 @@ for k = 0 : nsteps-1
 		
 		% BDF2
 		q2 = q1 + h*qdot1; % initial guess
-		q2 = newton(@(q2)evalBDF2(q2,scene),q2);
+		[q2,GL,GU,Gp,M,f,K,D,J] = newton(@(q2)evalBDF2(q2,scene),q2);
 		qdot2 = (3/(2*h))*(q2 - (4/3)*q1 + (1/3)*q0);
 		
 		% Save new state
@@ -113,7 +128,7 @@ for k = 0 : nsteps-1
 	scene.k = k + 1;
 	
 	% End of step
-	scene.saveHistory();
+	scene.saveHistory(GL,GU,Gp,M,f,K,D,J);
 	scene.draw();
 end
 %fprintf('%d steps\n',nsteps);
@@ -121,7 +136,7 @@ end
 end
 
 %%
-function q = newton(evalFcn,qInit)
+function [q,GL,GU,Gp,M,f,K,D,J] = newton(evalFcn,qInit)
 tol = 1e-9;
 dqMax = 1e3;
 iterMax = 5*length(qInit);
@@ -129,7 +144,7 @@ testGrad = false;
 q = qInit;
 iter = 1;
 while true
-	[g,G] = evalFcn(q);
+	[g,G,M,f,K,D,J] = evalFcn(q);
 	if testGrad
 		% Finite difference test
 		sqrteps = sqrt(eps); %#ok<UNRCH>
@@ -142,7 +157,9 @@ while true
 		end
 		redmax.Scene.printError('G',G_,G);
 	end
-	dq = -G\g;
+	% dq = -G\g;
+	[GL,GU,Gp] = lu(G,'vector');
+	dq = -(GU\(GL\g(Gp)));	
 	if norm(dq) > dqMax
 		fprintf('Newton diverged\n');
 		break;
@@ -161,7 +178,7 @@ end
 end
 
 %%
-function [g,G] = evalSDIRK2a(qa,scene)
+function [g,G,M,f,K,D,J] = evalSDIRK2a(qa,scene)
 h = scene.h;
 nr = redmax.Scene.countR();
 jroot = scene.joints{1};
@@ -176,7 +193,7 @@ ah2 = ah*ah;
 qdota = (qa - q0)/ah;
 jroot.setQ(qa,qdota);
 jroot.update();
-[M,dMdq,f,K,D] = computeValues(scene);
+[M,dMdq,f,K,D,J] = computeValues(scene);
 
 % SDIRK2a: Newton solve for g(q)=0 with Jacobian G = dg/dq
 dqtmp = qa - q0 - ah*qdot0;
@@ -188,7 +205,7 @@ end
 end
 
 %%
-function [g,G] = evalSDIRK2b(q1,scene)
+function [g,G,M,f,K,D,J] = evalSDIRK2b(q1,scene)
 h = scene.h;
 nr = redmax.Scene.countR();
 jroot = scene.joints{1};
@@ -204,7 +221,7 @@ ah2 = ah*ah;
 qdot1 = (q1 - q0 - (1-a)*h*qdota)/ah;
 jroot.setQ(q1,qdot1);
 jroot.update();
-[M,dMdq,f,K,D] = computeValues(scene);
+[M,dMdq,f,K,D,J] = computeValues(scene);
 
 % SDIRK2b: Newton solve for g(q)=0 with Jacobian G = dg/dq
 dqtmp = q1 - q0 - (2*a-1)*h*qdot0 - 2*(1-a)*h*qdota;
@@ -216,7 +233,7 @@ end
 end
 
 %%
-function [g,G] = evalBDF2(q2,scene)
+function [g,G,M,f,K,D,J] = evalBDF2(q2,scene)
 h = scene.h;
 nr = redmax.Scene.countR();
 jroot = scene.joints{1};
@@ -229,7 +246,7 @@ jroot = scene.joints{1};
 qdot2 = (3/(2*h))*(q2 - (4/3)*q1 + (1/3)*q0);
 jroot.setQ(q2,qdot2);
 jroot.update();
-[M,dMdq,f,K,D] = computeValues(scene);
+[M,dMdq,f,K,D,J] = computeValues(scene);
 
 % BDF2: Newton solve for g(q)=0 with Jacobian G = dg/dq
 h2 = h*h;
@@ -242,7 +259,7 @@ end
 end
 
 %%
-function [M,dMdq,f,K,D] = computeValues(scene)
+function [M,dMdq,f,K,D,J] = computeValues(scene)
 nr = redmax.Scene.countR();
 broot = scene.bodies{1};
 jroot = scene.joints{1};
