@@ -1,7 +1,6 @@
 # REDMAX: Efficient & Flexible Approach for Articulated Dynamics
 
-**NEW**: We now have an analytically differentiable version! See the the [notes](notes.pdf) and the [reference MATLAB implementation](matlab-diff).
-
+**NEW**: We now have an _analytically differentiable_ version! See the the [notes](notes.pdf) and the [reference MATLAB implementation](matlab-diff).
 
 
 ### Contents
@@ -22,6 +21,7 @@
   - Frictional dynamics with Bilateral Staggered Projections
   - Spline curve and surface joints [Lee and Terzopoulos 2008]
 - `c++`: C++ implementation including Projected Block Jacobi Preconditioner
+
 
 ### Citation
 
