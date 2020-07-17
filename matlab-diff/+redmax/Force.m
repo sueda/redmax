@@ -3,6 +3,7 @@ classdef (Abstract) Force < handle
 	
 	%%
 	properties
+		name % optional name
 		next % Next force in traversal order
 	end
 	
@@ -13,20 +14,35 @@ classdef (Abstract) Force < handle
 		end
 		
 		%%
-		function [fr,Kr,Dr,fm,Km,Dm] = computeValues(this,fr,Kr,Dr,fm,Km,Dm)
+		function [fr,fm,Kr,Km,Dr,Dm] = computeValues(this,fr,fm,Kr,Km,Dr,Dm)
 			nr = redmax.Scene.countR();
 			nm = redmax.Scene.countM();
-			if nargin == 1
-				fr = zeros(nr,1);
-				Kr = zeros(nr);
-				Dr = zeros(nr);
-				fm = zeros(nm,1);
-				Km = zeros(nm);
-				Dm = zeros(nm);
-			end
-			[fr,Kr,Dr,fm,Km,Dm] = this.computeValues_(fr,Kr,Dr,fm,Km,Dm);
-			if ~isempty(this.next)
-				[fr,Kr,Dr,fm,Km,Dm] = this.next.computeValues(fr,Kr,Dr,fm,Km,Dm);
+			if nargout == 2
+				% Just the forces
+				if nargin == 1
+					fr = zeros(nr,1);
+					fm = zeros(nm,1);
+				end
+				[fr,fm] = this.computeValues_(fr,fm);
+				% Go to the next force
+				if ~isempty(this.next)
+					[fr,fm] = this.next.computeValues(fr,fm);
+				end
+			else
+				% Forces and derivatives
+				if nargin == 1
+					fr = zeros(nr,1);
+					fm = zeros(nm,1);
+					Kr = zeros(nr);
+					Km = zeros(nm);
+					Dr = zeros(nr);
+					Dm = zeros(nm);
+				end
+				[fr,fm,Kr,Km,Dr,Dm] = this.computeValues_(fr,fm,Kr,Km,Dr,Dm);
+				% Go to the next force
+				if ~isempty(this.next)
+					[fr,fm,Kr,Km,Dr,Dm] = this.next.computeValues(fr,fm,Kr,Km,Dr,Dm);
+				end
 			end
 		end
 		
@@ -53,7 +69,7 @@ classdef (Abstract) Force < handle
 	%%
 	methods (Access = protected)
 		%%
-		function [fr,Kr,Dr,fm,Km,Dm] = computeValues_(this,fr,Kr,Dr,fm,Km,Dm) %#ok<*INUSL>
+		function [fr,fm,Kr,Km,Dr,Dm] = computeValues_(this,fr,fm,Kr,Km,Dr,Dm) %#ok<*INUSL>
 		end
 		
 		%%

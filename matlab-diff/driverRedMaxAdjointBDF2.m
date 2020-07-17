@@ -171,6 +171,7 @@ while true
 	end
 	if iter >= iterMax
 		fprintf('Newton did not converge after %d iterations\n',iterMax);
+		break;
 	end
 	iter = iter + 1;
 end
@@ -266,38 +267,50 @@ jroot = scene.joints{1};
 froot = scene.forces{1};
 
 qdot = jroot.getQdot();
-[J,dJdq,Jdot,dJdotdq] = jroot.computeJacobian();
-[Mm,fm,Km,Dm] = broot.computeMassGrav(scene.grav);
-[fm,Km,Dm] = broot.computeForce(fm,Km,Dm);
-[fr,Kr,Dr] = jroot.computeForce();
-[fr,Kr,Dr,fm,Km,Dm] = froot.computeValues(fr,Kr,Dr,fm,Km,Dm);
+if nargout == 2
+	[J,Jdot] = jroot.computeJacobian();
+	[Mm,fm] = broot.computeMassGrav(scene.grav);
+	fm = broot.computeForce(fm);
+	fr = jroot.computeForce();
+	[fr,fm] = froot.computeValues(fr,fm);
+else
+	[J,Jdot,dJdq,dJdotdq] = jroot.computeJacobian();
+	[Mm,fm,Km,Dm] = broot.computeMassGrav(scene.grav);
+	[fm,Km,Dm] = broot.computeForce(fm,Km,Dm);
+	[fr,Kr,Dr] = jroot.computeForce();
+	[fr,fm,Kr,Km,Dr,Dm] = froot.computeValues(fr,fm,Kr,Km,Dr,Dm);
+end
 
 % Inertia
 M = J'*Mm*J;
-dMdq = zeros(nr,nr,nr);
-for i = 1 : nr
-	tmp = J'*Mm*dJdq(:,:,i);
-	dMdq(:,:,i) = tmp' + tmp;
-end
-
-% Quadratic velocity vector
-fqvv = -J'*Mm*Jdot*qdot;
-Kqvv = zeros(nr,nr);
-Dqvv = -J'*Mm*Jdot;
-MmJdotqdot = Mm*Jdot*qdot;
-for i = 1 : nr
-	dJdqi = dJdq(:,:,i);
-	dJdotdqi = dJdotdq(:,:,i);
-	Kqvv(:,i) = -dJdqi'*MmJdotqdot - J'*Mm*dJdotdqi*qdot;
-	Dqvv(:,i) = Dqvv(:,i) - J'*Mm*dJdqi*qdot;
-end
 
 % Forces
+fqvv = -J'*Mm*Jdot*qdot;
 f = fr + J'*fm + fqvv;
-K = Kr + J'*Km*J + Kqvv;
-D = Dr + J'*Dm*J + Dqvv;
-for i = 1 : nr
-	dJdqi = dJdq(:,:,i);
-	K(:,i) = K(:,i) + dJdqi'*fm + J'*Dm*dJdqi*qdot;
+
+if nargout > 2
+	% Derivatives
+	dMdq = zeros(nr,nr,nr);
+	for i = 1 : nr
+		tmp = J'*Mm*dJdq(:,:,i);
+		dMdq(:,:,i) = tmp' + tmp;
+	end
+	
+	Kqvv = zeros(nr,nr);
+	Dqvv = -J'*Mm*Jdot;
+	MmJdotqdot = Mm*Jdot*qdot;
+	for i = 1 : nr
+		dJdqi = dJdq(:,:,i);
+		dJdotdqi = dJdotdq(:,:,i);
+		Kqvv(:,i) = -dJdqi'*MmJdotqdot - J'*Mm*dJdotdqi*qdot;
+		Dqvv(:,i) = Dqvv(:,i) - J'*Mm*dJdqi*qdot;
+	end
+	
+	K = Kr + J'*Km*J + Kqvv;
+	D = Dr + J'*Dm*J + Dqvv;
+	for i = 1 : nr
+		dJdqi = dJdq(:,:,i);
+		K(:,i) = K(:,i) + dJdqi'*fm + J'*Dm*dJdqi*qdot;
+	end
 end
 end

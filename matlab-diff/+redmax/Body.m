@@ -6,6 +6,7 @@ classdef (Abstract) Body < handle
 		name     % Optional name
 		color    % Color for rendering
 		density  % Mass/volume
+		damping  % Viscous damping
 		I_i      % Inertia at body center
 		E0_ji    % Where the body is wrt joint (fixed)
 		E0_ij    % Where the joint is wrt body (fixed)
@@ -27,6 +28,7 @@ classdef (Abstract) Body < handle
 			this.name = ['body',num2str(countB)];
 			this.color = CM(mod(countCM-1,size(CM,1))+1,:);
 			this.density = density;
+			this.damping = 0;
 			this.I_i = eye(6);
 			this.E0_ji = eye(4);
 			this.E0_ij = eye(4);
@@ -80,12 +82,19 @@ classdef (Abstract) Body < handle
 		%%
 		function [Mm,fm,Km,Dm] = computeMassGrav(this,grav,Mm,fm,Km,Dm)
 			% Computes maximal mass matrix and force vector
-			if nargin == 2
-				nm = redmax.Scene.countM();
-				Mm = zeros(nm,nm);
-				fm = zeros(nm,1);
-				Km = zeros(nm,nm);
-				Dm = zeros(nm,nm);
+			nm = redmax.Scene.countM();
+			if nargout == 2
+				if nargin == 2
+					Mm = zeros(nm,nm);
+					fm = zeros(nm,1);
+				end
+			else
+				if nargin == 2
+					Mm = zeros(nm,nm);
+					fm = zeros(nm,1);
+					Km = zeros(nm,nm);
+					Dm = zeros(nm,nm);
+				end
 			end
 			% Coriolis and gravity
 			rows = this.idxM;
@@ -100,21 +109,28 @@ classdef (Abstract) Body < handle
 			grav_i = R_iw*grav;
 			fgrav(4:6) = mass*grav_i; % wrench in body space
 			fm(rows) = fm(rows) + fcor + fgrav;
-			% Derivative of gravity wrt position
-			Km(rows(4:6),rows(1:3)) = Km(rows(4:6),rows(1:3)) + se3.brac(fgrav(4:6));
-			% Derivative of Coriolis wrt velocity
-			e1 = se3.brac([1 0 0]);
-			e2 = se3.brac([0 1 0]);
-			e3 = se3.brac([0 0 1]);
-			z3 = [0 0 0]';
-			Iw = this.I_i(1:3).*this.phi(1:3);
-			mv = mass*this.phi(4:6);
-			Dm(rows,rows) =  Dm(rows,rows) + adt*M_i - [
-				e1*Iw, e2*Iw, e3*Iw, e1*mv, e2*mv, e3*mv
-				e1*mv, e2*mv, e3*mv,    z3,    z3,    z3];
-			% Go to the next body
-			if ~isempty(this.next)
-				[Mm,fm,Km,Dm] = this.next.computeMassGrav(grav,Mm,fm,Km,Dm);
+			if nargout == 2
+				% Go to the next body
+				if ~isempty(this.next)
+					[Mm,fm] = this.next.computeMassGrav(grav,Mm,fm);
+				end
+			else
+				% Derivative of gravity wrt position
+				Km(rows(4:6),rows(1:3)) = Km(rows(4:6),rows(1:3)) + se3.brac(fgrav(4:6));
+				% Derivative of Coriolis wrt velocity
+				e1 = se3.brac([1 0 0]);
+				e2 = se3.brac([0 1 0]);
+				e3 = se3.brac([0 0 1]);
+				z3 = [0 0 0]';
+				Iw = this.I_i(1:3).*this.phi(1:3);
+				mv = mass*this.phi(4:6);
+				Dm(rows,rows) =  Dm(rows,rows) + adt*M_i - [
+					e1*Iw, e2*Iw, e3*Iw, e1*mv, e2*mv, e3*mv
+					e1*mv, e2*mv, e3*mv,    z3,    z3,    z3];
+				% Go to the next body
+				if ~isempty(this.next)
+					[Mm,fm,Km,Dm] = this.next.computeMassGrav(grav,Mm,fm,Km,Dm);
+				end
 			end
 		end
 		
@@ -122,19 +138,28 @@ classdef (Abstract) Body < handle
 		function [fm,Km,Dm] = computeForce(this,fm,Km,Dm)
 			% Computes maximal force vector and matrix
 			nm = redmax.Scene.countM();
-			if nargin == 1
-				fm = zeros(nm,1);
-				Km = zeros(nm);
-				Dm = zeros(nm);
-			elseif nargin == 2
-				Km = zeros(nm);
-				Dm = zeros(nm);
-			elseif nargin == 3
-				Dm = zeros(nm);
-			end
-			% Go to the next body
-			if ~isempty(this.next)
-				[fm,Km,Dm] = this.next.computeForce(fm,Km,Dm);
+			if nargout == 1
+				% Just the force
+				if nargin == 1
+					fm = zeros(nm,1);
+				end
+				% TODO: viscous damping
+				% Go to the next body
+				if ~isempty(this.next)
+					fm = this.next.computeForce(fm);
+				end
+			else
+				% Both force and derivatives
+				if nargin == 1
+					fm = zeros(nm,1);
+					Km = zeros(nm);
+					Dm = zeros(nm);
+				end
+				% TODO: viscous damping
+				% Go to the next body
+				if ~isempty(this.next)
+					[fm,Km,Dm] = this.next.computeForce(fm,Km,Dm);
+				end
 			end
 		end
 		

@@ -166,11 +166,13 @@ classdef Scene < handle
 				t = [0,this.history.t]; %#ok<PROPLC>
 				V = V - V(1);
 				H = T + V;
-				dH = H(end) - this.Hexpected(itype);
-				if abs(dH) > 1e-2
-					fprintf(2,'### FAIL: %.16e ###\n',H(end));
-				else
-					fprintf(1,'### PASS ###\n');
+				if this.Hexpected(itype) ~= 0
+					dH = H(end) - this.Hexpected(itype);
+					if abs(dH) > 1e-2
+						fprintf(2,'### FAIL: %.16e ###\n',H(end));
+					else
+						fprintf(1,'### PASS ###\n');
+					end
 				end
 				if this.plotH
 					clf;
@@ -229,7 +231,7 @@ classdef Scene < handle
 			body0 = this.bodies{1};
 			q = joint0.getQ();
 			qdot = joint0.getQdot();
-			[J,dJdq,Jdot,dJdotdq] = joint0.computeJacobian();
+			[J,Jdot,dJdq,dJdotdq] = joint0.computeJacobian();
 			[Mm,fm,Km,Dm] = body0.computeMassGrav(this.grav);
 			[fm,Km,Dm] = body0.computeForce(fm,Km,Dm);
 			[fr,Kr,Dr] = joint0.computeForce();
@@ -284,7 +286,7 @@ classdef Scene < handle
 				q_(i) = q_(i) + sqrteps;
 				joint0.setQ(q_);
 				joint0.update();
-				[J_,~,Jdot_] = joint0.computeJacobian();
+				[J_,Jdot_] = joint0.computeJacobian();
 				joint0.setQ(q);
 				joint0.update();
 				dJdq_(:,:,i) = (J_ - J)/sqrteps;
@@ -317,7 +319,7 @@ classdef Scene < handle
 				q_(i) = q_(i) + sqrteps;
 				joint0.setQ(q_);
 				joint0.update();
-				[J_,~,Jdot_] = joint0.computeJacobian();
+				[J_,Jdot_] = joint0.computeJacobian();
 				joint0.setQ(q);
 				joint0.update();
 				fqvv_ = -J_'*Mm*Jdot_*qdot;
@@ -327,7 +329,7 @@ classdef Scene < handle
 				qdot_(i) = qdot_(i) + sqrteps;
 				joint0.setQdot(qdot_);
 				joint0.update();
-				[J_,~,Jdot_] = joint0.computeJacobian();
+				[J_,Jdot_] = joint0.computeJacobian();
 				joint0.setQdot(qdot);
 				joint0.update();
 				fqvv_ = -J_'*Mm*Jdot_*qdot_;
@@ -345,7 +347,7 @@ classdef Scene < handle
 				q_(i) = q_(i) + sqrteps;
 				joint0.setQ(q_);
 				joint0.update();
-				[J_,~,Jdot_] = joint0.computeJacobian();
+				[J_,Jdot_] = joint0.computeJacobian();
 				[~,fm_] = body0.computeMassGrav(this.grav);
 				fm_ = body0.computeForce(fm_);
 				fr_ = joint0.computeForce();
@@ -358,7 +360,7 @@ classdef Scene < handle
 				qdot_(i) = qdot_(i) + sqrteps;
 				joint0.setQdot(qdot_);
 				joint0.update();
-				[J_,~,Jdot_] = joint0.computeJacobian();
+				[J_,Jdot_] = joint0.computeJacobian();
 				[~,fm_] = body0.computeMassGrav(this.grav);
 				fm_ = body0.computeForce(fm_);
 				fr_ = joint0.computeForce();

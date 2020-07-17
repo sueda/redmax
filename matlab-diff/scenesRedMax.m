@@ -270,6 +270,28 @@ switch(sceneID)
 		scene.forces{1} = redmax.ForcePointPoint(scene.bodies{3},[0 0 -5]',scene.bodies{4},[10 0 0]');
 		scene.forces{1}.setStiffness(1e8);
 		scene.joints{5}.qdot(1) = 5;
+	case 11
+		scene.name = 'Free2D with ground';
+		scene.Hexpected(BDF1) = 0;
+		scene.Hexpected(BDF2) = -1.2861683828469455e+00;
+		scene.h = 5e-2;
+		scene.tEnd = 15.0;
+		%scene.drawHz = 1/scene.h;
+		scene.grav = [0 -1 0]';
+		scene.view = 2;
+		scene.plotH = true;
+		scene.waxis = 3*[-1 1 0 2 -0.1 0.1];
+		scene.bodies{1} = redmax.BodyCuboid(density,[1 1 1]);
+		scene.joints{1} = redmax.JointFree2D([],scene.bodies{1});
+		scene.joints{1}.q = [-2 2 0]';
+		scene.joints{1}.qdot = [0.5 2 1]';
+		scene.joints{1}.setJointTransform(eye(4));
+		scene.bodies{1}.setBodyTransform(eye(4));
+		scene.forces{1} = redmax.ForceGroundCuboid(scene.bodies{1});
+		scene.forces{1}.setTransform([se3.aaToMat([1 0 0],-pi/2),[0 0 0]'; 0 0 0 1]);
+		kn = 1e3;
+		scene.forces{1}.setStiffness(kn,scene.h*kn);
+		scene.forces{1}.setFriction(0.8);
 	case 100
 		scene.name = 'Adjoint BDF1';
 		%scene.grav = [0 0 0]';

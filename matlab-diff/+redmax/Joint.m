@@ -393,108 +393,163 @@ classdef (Abstract) Joint < handle
 		function [fr,Kr,Dr] = computeForce(this,fr,Kr,Dr)
 			% Computes reduced force vector and matrix
 			nr = redmax.Scene.countR();
-			if nargin == 1
-				fr = zeros(nr,1);
-				Kr = zeros(nr);
-				Dr = zeros(nr);
-			elseif nargin == 2
-				Kr = zeros(nr);
-				Dr = zeros(nr);
-			elseif nargin == 3
-				Dr = zeros(nr);
-			end
-			rows = this.idxR;
-			% Joint torque
-			fr(rows) = fr(rows) + this.tau + this.stiffness*(this.qRest - this.q) - this.damping*this.qdot;
-			I = eye(this.ndof);
-			Kr(rows,rows) = Kr(rows,rows) - this.stiffness*I;
-			Dr(rows,rows) = Dr(rows,rows) - this.damping*I;
-			% Go to the next joint
-			if ~isempty(this.next)
-				[fr,Kr,Dr] = this.next.computeForce(fr,Kr,Dr);
+			if nargout == 1
+				% Just the force
+				if nargin == 1
+					fr = zeros(nr,1);
+				end
+				fr = this.computeForce_(fr);
+				rows = this.idxR;
+				% Joint torque
+				fr(rows) = fr(rows) + this.tau + this.stiffness*(this.qRest - this.q) - this.damping*this.qdot;
+				% Go to the next joint
+				if ~isempty(this.next)
+					fr = this.next.computeForce(fr);
+				end
+			else
+				% Both force and derivatives
+				if nargin == 1
+					fr = zeros(nr,1);
+					Kr = zeros(nr);
+					Dr = zeros(nr);
+				end
+				[fr,Kr,Dr] = this.computeForce_(fr,Kr,Dr);
+				rows = this.idxR;
+				% Joint torque
+				fr(rows) = fr(rows) + this.tau + this.stiffness*(this.qRest - this.q) - this.damping*this.qdot;
+				I = eye(this.ndof);
+				Kr(rows,rows) = Kr(rows,rows) - this.stiffness*I;
+				Dr(rows,rows) = Dr(rows,rows) - this.damping*I;
+				% Go to the next joint
+				if ~isempty(this.next)
+					[fr,Kr,Dr] = this.next.computeForce(fr,Kr,Dr);
+				end
 			end
 		end
 		
 		%%
-		function [J,dJdq,Jdot,dJdotdq] = computeJacobian(this,J,dJdq,Jdot,dJdotdq)
-			% Computes the Jacobian
+		function [J,Jdot,dJdq,dJdotdq] = computeJacobian(this,J,Jdot,dJdq,dJdotdq)
+			% Computes the Jacobian and its derivatives
 			nm = redmax.Scene.countM();
 			nr = redmax.Scene.countR();
-			if nargin == 1
-				J = zeros(nm,nr);
-				dJdq = zeros(nm,nr,nr);
-				Jdot = zeros(nm,nr);
-				dJdotdq = zeros(nm,nr,nr);
-			end
-			invQ = this.invQ; %#ok<*PROPLC>
-			invA = this.invA;
-			dAdq = this.dAdq;
-			Adot = this.Adot;
-			dAdotdq = this.dAdotdq;
-			S = this.S;
-			dSdq = this.dSdq;
-			Sdot = this.Sdot;
-			dSdotdq = this.dSdotdq;
-			idxmI = this.body.idxM;
-			idxrI = this.idxR;
-			E0_BiJi = this.body.E0_ij; % this body - this joint
-			A0_BiJi = this.body.A0_ij;
-			J   (idxmI,idxrI) = A0_BiJi*S;
-			Jdot(idxmI,idxrI) = A0_BiJi*Sdot;
-			for ii = 1 : this.ndof
-				dJdq   (idxmI,idxrI,idxrI(ii)) = A0_BiJi*   dSdq(:,:,ii);
-				dJdotdq(idxmI,idxrI,idxrI(ii)) = A0_BiJi*dSdotdq(:,:,ii);
-			end
-			if ~isempty(this.parent)
-				idxmP = this.parent.body.idxM;
-				E0_JpBp = this.parent.body.E0_ji; % parent joint - parent body
-				E0_JiJp = this.E0_jp;             % this joint   - parent joint
-				E0_JiBp = E0_JiJp*E0_JpBp;        % this joint   - parent body
-				E_BiBp = E0_BiJi*invQ*E0_JiBp;    % this body    - parent body
-				A_BiBp = se3.Ad(E_BiBp);
-				dAdq_BiBp    = zeros(6,6,this.ndof);
-				dAdotdq_BiBp = zeros(6,6,this.ndof);
-				Aleft  = -se3.Ad(E0_BiJi*invQ);
-				Aright =  se3.Ad(invQ*E0_JiBp);
-				Adot_BiBp = Aleft*Adot*Aright;
+			if nargout == 2
+				% Only J and Jdot (takes O(n^2) time)
+				if nargin == 1
+					J = zeros(nm,nr);
+					Jdot = zeros(nm,nr);
+				end
+				invQ = this.invQ; %#ok<*PROPLC>
+				Adot = this.Adot;
+				S = this.S;
+				Sdot = this.Sdot;
+				idxmI = this.body.idxM;
+				idxrI = this.idxR;
+				E0_BiJi = this.body.E0_ij; % this body - this joint
+				A0_BiJi = this.body.A0_ij;
+				J   (idxmI,idxrI) = A0_BiJi*S;
+				Jdot(idxmI,idxrI) = A0_BiJi*Sdot;
+				if ~isempty(this.parent)
+					idxmP = this.parent.body.idxM;
+					E0_JpBp = this.parent.body.E0_ji; % parent joint - parent body
+					E0_JiJp = this.E0_jp;             % this joint   - parent joint
+					E0_JiBp = E0_JiJp*E0_JpBp;        % this joint   - parent body
+					E_BiBp = E0_BiJi*invQ*E0_JiBp;    % this body    - parent body
+					A_BiBp = se3.Ad(E_BiBp);
+					Aleft  = -se3.Ad(E0_BiJi*invQ);
+					Aright =  se3.Ad(invQ*E0_JiBp);
+					Adot_BiBp = Aleft*Adot*Aright;
+					jointA = this.parent;
+					while ~isempty(jointA)
+						idxrA = jointA.idxR;
+						JPA    = J   (idxmP,idxrA);
+						JdotPA = Jdot(idxmP,idxrA);
+						J   (idxmI,idxrA) = A_BiBp*JPA;
+						Jdot(idxmI,idxrA) = A_BiBp*JdotPA + Adot_BiBp*JPA;
+						jointA = jointA.parent;
+					end
+				end
+				% Go to the next joint
+				if ~isempty(this.next)
+					[J,Jdot] = this.next.computeJacobian(J,Jdot);
+				end
+			else
+				% J, Jdot, dJdq, dJdotdq  (takes O(n^3) time)
+				if nargin == 1
+					J = zeros(nm,nr);
+					Jdot = zeros(nm,nr);
+					dJdq = zeros(nm,nr,nr);
+					dJdotdq = zeros(nm,nr,nr);
+				end
+				invQ = this.invQ; %#ok<*PROPLC>
+				invA = this.invA;
+				dAdq = this.dAdq;
+				Adot = this.Adot;
+				dAdotdq = this.dAdotdq;
+				S = this.S;
+				dSdq = this.dSdq;
+				Sdot = this.Sdot;
+				dSdotdq = this.dSdotdq;
+				idxmI = this.body.idxM;
+				idxrI = this.idxR;
+				E0_BiJi = this.body.E0_ij; % this body - this joint
+				A0_BiJi = this.body.A0_ij;
+				J   (idxmI,idxrI) = A0_BiJi*S;
+				Jdot(idxmI,idxrI) = A0_BiJi*Sdot;
 				for ii = 1 : this.ndof
-					dAdq_ii    =    dAdq(:,:,ii);
-					dAdotdq_ii = dAdotdq(:,:,ii);
-					tmp1 = dAdq_ii*invA*Adot;
-					tmp2 = Adot*invA*dAdq_ii;
-					dAdq_BiBp   (:,:,ii) = Aleft*dAdq_ii*Aright;
-					dAdotdq_BiBp(:,:,ii) = Aleft*(dAdotdq_ii - tmp1 - tmp2)*Aright;
+					dJdq   (idxmI,idxrI,idxrI(ii)) = A0_BiJi*   dSdq(:,:,ii);
+					dJdotdq(idxmI,idxrI,idxrI(ii)) = A0_BiJi*dSdotdq(:,:,ii);
 				end
-				jointA = this.parent;
-				while ~isempty(jointA)
-					idxrA = jointA.idxR;
-					JPA    = J   (idxmP,idxrA);
-					JdotPA = Jdot(idxmP,idxrA);
-					J   (idxmI,idxrA) = A_BiBp*JPA;
-					Jdot(idxmI,idxrA) = A_BiBp*JdotPA + Adot_BiBp*JPA;
-					for ii = 1 : length(idxrI)
-						dAdq_BiBp_ii    = dAdq_BiBp   (:,:,ii);
-						dAdotdq_BiBp_ii = dAdotdq_BiBp(:,:,ii);
-						dJdq   (idxmI,idxrA,idxrI(ii)) = dAdq_BiBp_ii*JPA;
-						dJdotdq(idxmI,idxrA,idxrI(ii)) = dAdq_BiBp_ii*JdotPA + dAdotdq_BiBp_ii*JPA;
+				if ~isempty(this.parent)
+					idxmP = this.parent.body.idxM;
+					E0_JpBp = this.parent.body.E0_ji; % parent joint - parent body
+					E0_JiJp = this.E0_jp;             % this joint   - parent joint
+					E0_JiBp = E0_JiJp*E0_JpBp;        % this joint   - parent body
+					E_BiBp = E0_BiJi*invQ*E0_JiBp;    % this body    - parent body
+					A_BiBp = se3.Ad(E_BiBp);
+					dAdq_BiBp    = zeros(6,6,this.ndof);
+					dAdotdq_BiBp = zeros(6,6,this.ndof);
+					Aleft  = -se3.Ad(E0_BiJi*invQ);
+					Aright =  se3.Ad(invQ*E0_JiBp);
+					Adot_BiBp = Aleft*Adot*Aright;
+					for ii = 1 : this.ndof
+						dAdq_ii    =    dAdq(:,:,ii);
+						dAdotdq_ii = dAdotdq(:,:,ii);
+						tmp1 = dAdq_ii*invA*Adot;
+						tmp2 = Adot*invA*dAdq_ii;
+						dAdq_BiBp   (:,:,ii) = Aleft*dAdq_ii*Aright;
+						dAdotdq_BiBp(:,:,ii) = Aleft*(dAdotdq_ii - tmp1 - tmp2)*Aright;
 					end
-					jointK = this.parent;
-					while ~isempty(jointK)
-						idxrK = jointK.idxR;
-						for kk = 1 : length(idxrK)
-							dJdqPAK    = dJdq   (idxmP,idxrA,idxrK(kk));
-							dJdotdqPAK = dJdotdq(idxmP,idxrA,idxrK(kk));
-							dJdq   (idxmI,idxrA,idxrK(kk)) = A_BiBp*dJdqPAK;
-							dJdotdq(idxmI,idxrA,idxrK(kk)) = A_BiBp*dJdotdqPAK + Adot_BiBp*dJdqPAK;
+					jointA = this.parent;
+					while ~isempty(jointA)
+						idxrA = jointA.idxR;
+						JPA    = J   (idxmP,idxrA);
+						JdotPA = Jdot(idxmP,idxrA);
+						J   (idxmI,idxrA) = A_BiBp*JPA;
+						Jdot(idxmI,idxrA) = A_BiBp*JdotPA + Adot_BiBp*JPA;
+						for ii = 1 : length(idxrI)
+							dAdq_BiBp_ii    = dAdq_BiBp   (:,:,ii);
+							dAdotdq_BiBp_ii = dAdotdq_BiBp(:,:,ii);
+							dJdq   (idxmI,idxrA,idxrI(ii)) = dAdq_BiBp_ii*JPA;
+							dJdotdq(idxmI,idxrA,idxrI(ii)) = dAdq_BiBp_ii*JdotPA + dAdotdq_BiBp_ii*JPA;
 						end
-						jointK = jointK.parent;
+						jointK = this.parent;
+						while ~isempty(jointK)
+							idxrK = jointK.idxR;
+							for kk = 1 : length(idxrK)
+								dJdqPAK    = dJdq   (idxmP,idxrA,idxrK(kk));
+								dJdotdqPAK = dJdotdq(idxmP,idxrA,idxrK(kk));
+								dJdq   (idxmI,idxrA,idxrK(kk)) = A_BiBp*dJdqPAK;
+								dJdotdq(idxmI,idxrA,idxrK(kk)) = A_BiBp*dJdotdqPAK + Adot_BiBp*dJdqPAK;
+							end
+							jointK = jointK.parent;
+						end
+						jointA = jointA.parent;
 					end
-					jointA = jointA.parent;
 				end
-			end
-			% Go to the next joint
-			if ~isempty(this.next)
-				[J,dJdq,Jdot,dJdotdq] = this.next.computeJacobian(J,dJdq,Jdot,dJdotdq);
+				% Go to the next joint
+				if ~isempty(this.next)
+					[J,Jdot,dJdq,dJdotdq] = this.next.computeJacobian(J,Jdot,dJdq,dJdotdq);
+				end
 			end
 		end
 		
@@ -685,8 +740,13 @@ classdef (Abstract) Joint < handle
 		end
 		
 		%%
+		function [fr,Kr,Dr] = computeForce_(this,fr,Kr,Dr) %#ok<INUSL>
+			% Subclass specific force
+		end
+		
+		%%
 		function draw_(this) %#ok<MANU>
-			% Subclasses specific draw
+			% Subclass specific draw
 		end
 	end
 end
