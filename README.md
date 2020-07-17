@@ -14,12 +14,13 @@
 - `matlab-diff`: Object-oriented MATLAB implementation of differentiable redmax
   - Fully implicit time integration: BDF1 and BDF2
   - Parameter optimization with the adjoint method
+  - Frictional contact with the ground [[Geilinger et al. 2020]](https://arxiv.org/pdf/2007.00987.pdf)
 - `matlab-simple`: Simpler object-oriented MATLAB implementation for getting started
 - `matlab`: Object-oriented MATLAB implementation with many features, including:
   - Recursive hybrid dynamics (Featherstone's algorithm) for comparison
   - Time integration using `ode45` or `euler`
   - Frictional dynamics with Bilateral Staggered Projections
-  - Spline curve and surface joints [Lee and Terzopoulos 2008]
+  - Spline curve and surface joints [[Lee and Terzopoulos 2008]](http://web.cs.ucla.edu/~dt//papers/siggraph08/siggraph08.pdf)
 - `c++`: C++ implementation including Projected Block Jacobi Preconditioner
 
 
