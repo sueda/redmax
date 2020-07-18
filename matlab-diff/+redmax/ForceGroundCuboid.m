@@ -108,7 +108,7 @@ classdef ForceGroundCuboid < redmax.Force
 				xwdot = R*G*phi;
 				a = T*xwdot;
 				anorm = norm(a);
-				if this.mu*norm(fc) > this.kt*anorm
+				if this.mu*abs(this.kn*d) > this.kt*anorm
 					% Static friction force
 					f = -this.kt*G'*R'*T*R*G*phi;
 					fm(idxM) = fm(idxM) + f;
@@ -116,27 +116,25 @@ classdef ForceGroundCuboid < redmax.Force
 						% Static friction damping and stiffness
 						D = -this.kt*G'*R'*T*R*G;
 						Gphi = G*phi;
-						RTRGphi = R'*T*R*Gphi;
-						K1 = -[e1b*RTRGphi, e2b*RTRGphi, e3b*RTRGphi, Z];
-						K2 = R'*T*R* [e1b*Gphi, e2b*Gphi, e3b*Gphi, Z];
-						K = -this.kt*G'*(K1 + K2);
+						B = R'*T*R;
+						K = -this.kt*G'*([(B*e1b-e1b*B)*Gphi, (B*e2b-e2b*B)*Gphi, (B*e3b-e3b*B)*Gphi, Z]);
 						Dm(idxM,idxM) = Dm(idxM,idxM) + D;
 						Km(idxM,idxM) = Km(idxM,idxM) + K;
 					end
 				else
 					% dynamic friction force
-					mukt = this.mu*this.kt;
+					mukn = this.mu*this.kn;
 					t = a/anorm;
-					f = -mukt*G'*R'*d*t;
+					f = -mukn*G'*R'*d*t;
 					fm(idxM) = fm(idxM) + f;
 					if nargout > 2
 						% dynamic friction damping and stiffness
 						A = (a'*a*I - a*a')/norm(a)^3;
-						D = -mukt*G'*R'*d*A*T*R*G;
+						D = -mukn*G'*R'*d*A*T*R*G;
 						K1 = -d*[e1b*R'*t, e2b*R'*t, e3b*R'*t, Z];
 						K2 = R'*t*ng'*R*G;
 						K3 = -d*R'*A*T*R*[se3.brac(G*phi), Z];
-						K = -mukt*G'*(K1 + K2 + K3);
+						K = -mukn*G'*(K1 + K2 + K3);
 						Dm(idxM,idxM) = Dm(idxM,idxM) + D;
 						Km(idxM,idxM) = Km(idxM,idxM) + K;
 					end
@@ -260,14 +258,12 @@ classdef ForceGroundCuboid < redmax.Force
 			f = -kt*G'*R'*T*R*G*phi;
 			D = -kt*G'*R'*T*R*G;
 			Gphi = G*phi;
-			RTRGphi = R'*T*R*Gphi;
+			B = R'*T*R;
 			e1b = se3.brac([1 0 0]');
 			e2b = se3.brac([0 1 0]');
 			e3b = se3.brac([0 0 1]');
 			Z = zeros(3,3);
-			K1 = -[e1b*RTRGphi, e2b*RTRGphi, e3b*RTRGphi, Z];
-			K2 = R'*T*R* [e1b*Gphi, e2b*Gphi, e3b*Gphi, Z];
-			K = -kt*G'*(K1 + K2);
+			K = -kt*G'*([(B*e1b-e1b*B)*Gphi, (B*e2b-e2b*B)*Gphi, (B*e3b-e3b*B)*Gphi, Z]);
 			% Finite difference test
 			D_ = zeros(6,6);
 			K_ = zeros(6,6);
