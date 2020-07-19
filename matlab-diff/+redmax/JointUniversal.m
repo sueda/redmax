@@ -16,37 +16,29 @@ classdef JointUniversal < redmax.Joint
 	%%
 	methods (Access = protected)
 		%%
-		function update_(this)
-			n = this.ndof;
+		function update_(this,deriv)
 			q = this.q;
 			qdot = this.qdot;
 			
 			[R,dRdq,Rdot,dRdotdq,S,dSdq,Sdot,dSdotdq] = redmax.JointUniversal.XY(q,qdot);
 			
-			this.Q = eye(4);
 			this.Q(1:3,1:3) = R;
 			this.A = se3.Ad(this.Q);
-			
-			this.dAdq = zeros(6,6,n);
-			this.Adot = zeros(6,6);
-			this.dAdotdq = zeros(6,6,n);
-			this.S = zeros(6,n);
-			this.dSdq = zeros(6,n,n);
-			this.Sdot = zeros(6,n);
-			this.dSdotdq = zeros(6,n,n);
 			
 			this.Adot(1:3,1:3) = Rdot;
 			this.Adot(4:6,4:6) = Rdot;
 			this.S(1:3,1:2) = S;
 			this.Sdot(1:3,1:2) = Sdot;
 			
-			for i = 1 : 2
-				this.dAdq(1:3,1:3,i) = dRdq(:,:,i);
-				this.dAdq(4:6,4:6,i) = dRdq(:,:,i);
-				this.dAdotdq(1:3,1:3,i) = dRdotdq(:,:,i);
-				this.dAdotdq(4:6,4:6,i) = dRdotdq(:,:,i);
-				this.dSdq(1:3,1:2,i) = dSdq(:,:,i);
-				this.dSdotdq(1:3,1:2,i) = dSdotdq(:,:,i);
+			if deriv
+				for i = 1 : 2
+					this.dAdq(1:3,1:3,i) = dRdq(:,:,i);
+					this.dAdq(4:6,4:6,i) = dRdq(:,:,i);
+					this.dAdotdq(1:3,1:3,i) = dRdotdq(:,:,i);
+					this.dAdotdq(4:6,4:6,i) = dRdotdq(:,:,i);
+					this.dSdq(1:3,1:2,i) = dSdq(:,:,i);
+					this.dSdotdq(1:3,1:2,i) = dSdotdq(:,:,i);
+				end
 			end
 		end
 		

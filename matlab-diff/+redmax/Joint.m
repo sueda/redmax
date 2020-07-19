@@ -351,9 +351,25 @@ classdef (Abstract) Joint < handle
 		end
 		
 		%%
-		function update(this)
+		function update(this,deriv)
+			if nargin == 1
+				deriv = true;
+			end
+			% Reset
+			n = this.ndof;
+			this.Q = eye(4,4);
+			this.A = eye(6,6);
+			this.Adot = zeros(6,6);
+			this.S = zeros(6,n);
+			this.Sdot = zeros(6,n);
+			if deriv
+				this.dAdq = zeros(6,6,n);
+				this.dAdotdq = zeros(6,6,n);
+				this.dSdq = zeros(6,n,n);
+				this.dSdotdq = zeros(6,n,n);
+			end
 			% Updates this joint and the attached body
-			this.update_();
+			this.update_(deriv);
 			this.invQ = se3.inv(this.Q);
 			this.invA = se3.Ad(this.invQ);
 			% Transforms and adjoints
@@ -735,8 +751,9 @@ classdef (Abstract) Joint < handle
 		end
 		
 		%%
-		function update_(this) %#ok<MANU>
-			% Compute: Q,A,dAdq,Adot,dAdotdq,S,dSdq,Sdot,dSdotdq
+		function update_(this,deriv) %#ok<INUSD>
+			% Compute Q,A,Adot,S,Sdot
+			% if deriv, also compute dAdq,dAdotdq,dSdq,dSdotdq
 		end
 		
 		%%

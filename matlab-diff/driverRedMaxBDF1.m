@@ -128,7 +128,7 @@ while true
 			break;
 		end
 		if iterLs >= iterLsMax
-			fprintf('Line search did not converge after %d iterations\n',iterLsMax);
+			%fprintf('Line search did not converge after %d iterations\n',iterLsMax);
 			break;
 		end
 		alpha = 0.5*alpha;
@@ -165,11 +165,12 @@ dqtmp = q1 - q0 - h*qdot0;
 % New values
 qdot1 = (q1 - q0)/h;
 jroot.setQ(q1,qdot1);
-jroot.update();
 if nargout == 1
+	jroot.update(false);
 	[M,f] = computeValues(scene);
 	g = M*dqtmp - h2*f;
 else
+	jroot.update();
 	[M,f,dMdq,K,D] = computeValues(scene);
 	g = M*dqtmp - h2*f;
 	G = M - h*D - h2*K;
@@ -177,8 +178,6 @@ else
 		G(:,i) = G(:,i) + dMdq(:,:,i)*dqtmp;
 	end
 end
-
-% BDF1: Newton solve for g(q)=0 with Jacobian G = dg/dq
 
 end
 

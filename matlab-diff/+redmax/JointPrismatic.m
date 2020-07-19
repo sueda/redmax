@@ -25,28 +25,20 @@ classdef JointPrismatic < redmax.Joint
 	%%
 	methods (Access = protected)
 		%%
-		function update_(this)
-			n = 1;
+		function update_(this,deriv)
 			a = this.axis;
 			p = a*this.q;
 			qdot = this.qdot;
 			
-			this.Q = eye(4);
 			this.Q(1:3,4) = p;
 			this.A = se3.Ad(this.Q);
 			this.S = [zeros(3,1);a];
-			
-			this.Sdot = zeros(6,n);
-			this.dSdotdq = zeros(6,n,n);
-			
 			abrac = se3.brac(a);
-			this.dAdq = zeros(6,6,n);
-			this.dAdq(4:6,1:3) = abrac;
-			this.dSdq = zeros(6,n,n);
-			
-			this.Adot = zeros(6,6);
 			this.Adot(4:6,1:3) = abrac*qdot;
-			this.dAdotdq = zeros(6,6,n);
+			
+			if deriv
+				this.dAdq(4:6,1:3) = abrac;
+			end
 		end
 		
 		%%

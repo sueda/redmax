@@ -26,37 +26,30 @@ classdef JointRevolute < redmax.Joint
 	%%
 	methods (Access = protected)
 		%%
-		function update_(this)
-			n = this.ndof;
+		function update_(this,deriv)
 			q = this.q;
 			qdot = this.qdot;
 			a = this.axis;
 			
-			this.Q = eye(4);
 			R = se3.aaToMat(a,q); % faster than se3.exp(se3.brac(a*q));
 			this.Q(1:3,1:3) = R;
 			this.A = se3.Ad(this.Q);
 			this.S = [a; zeros(3,1)];
 			
-			this.Sdot = zeros(6,n);
-			this.dSdotdq = zeros(6,n,n);
-			
-			this.dSdq = zeros(6,n,n);
-			this.dAdq = zeros(6,6,n);
 			abrac = se3.brac(a);
 			dRdq = R*abrac;
-			this.dAdq(1:3,1:3) = dRdq;
-			this.dAdq(4:6,4:6) = dRdq;
-			
 			Rdot = dRdq*qdot;
-			this.Adot = zeros(6,6);
 			this.Adot(1:3,1:3) = Rdot;
 			this.Adot(4:6,4:6) = Rdot;
-			d2Rdq2 = dRdq*abrac;
-			tmp = d2Rdq2*qdot;
-			this.dAdotdq = zeros(6,6,n);
-			this.dAdotdq(1:3,1:3) = tmp;
-			this.dAdotdq(4:6,4:6) = tmp;
+			
+			if deriv
+				this.dAdq(1:3,1:3) = dRdq;
+				this.dAdq(4:6,4:6) = dRdq;
+				d2Rdq2 = dRdq*abrac;
+				tmp = d2Rdq2*qdot;
+				this.dAdotdq(1:3,1:3) = tmp;
+				this.dAdotdq(4:6,4:6) = tmp;
+			end
 		end
 		
 		%%

@@ -46,8 +46,6 @@ classdef ForceGroundCuboid < redmax.Force
 		%%
 		function [fr,fm,Kr,Km,Dr,Dm] = computeValues_(this,fr,fm,Kr,Km,Dr,Dm)
 			idxM = this.cuboid.idxM;
-			idxW = idxM(1:3);
-			idxV = idxM(4:6);
 			xg = this.E(1:3,4); % ground origin
 			ng = this.E(1:3,3); % ground normal
 			N = ng*ng';
@@ -89,16 +87,13 @@ classdef ForceGroundCuboid < redmax.Force
 				end
 				
 				% Contact force
+				fc = -this.kn*ng*d;
 				G = se3.Gamma(xli);
-				fc = this.kn*ng*d;
-				fm(idxM) = fm(idxM) - G'*R'*fc;
+				fm(idxM) = fm(idxM) + G'*R'*fc;
 				if nargout > 2
 					% Contact stiffness
 					tmp = -[e1b*RNRxl,e2b*RNRxl,e3b*RNRxl] - RNR*xlbrac + pxgtmp;
-					Km(idxW,idxW) = Km(idxW,idxW) - this.kn*xlbrac*tmp;
-					Km(idxV,idxW) = Km(idxV,idxW) - this.kn*tmp;
-					Km(idxW,idxV) = Km(idxW,idxV) - this.kn*xlbrac*RNR;
-					Km(idxV,idxV) = Km(idxV,idxV) - this.kn*RNR;
+					Km(idxM,idxM) = Km(idxM,idxM) - this.kn*G'*[tmp RNR];
 				end
 				
 				% Friction force
@@ -110,8 +105,8 @@ classdef ForceGroundCuboid < redmax.Force
 				anorm = norm(a);
 				if this.mu*abs(this.kn*d) > this.kt*anorm
 					% Static friction force
-					f = -this.kt*G'*R'*T*R*G*phi;
-					fm(idxM) = fm(idxM) + f;
+					fs = -this.kt*a;
+					fm(idxM) = fm(idxM) + G'*R'*fs;
 					if nargout > 2
 						% Static friction damping and stiffness
 						D = -this.kt*G'*R'*T*R*G;
@@ -125,8 +120,8 @@ classdef ForceGroundCuboid < redmax.Force
 					% dynamic friction force
 					mukn = this.mu*this.kn;
 					t = a/anorm;
-					f = -mukn*G'*R'*d*t;
-					fm(idxM) = fm(idxM) + f;
+					fd = -mukn*d*t;
+					fm(idxM) = fm(idxM) + G'*R'*fd;
 					if nargout > 2
 						% dynamic friction damping and stiffness
 						A = (a'*a*I - a*a')/norm(a)^3;

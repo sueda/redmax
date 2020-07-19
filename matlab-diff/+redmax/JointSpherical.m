@@ -102,35 +102,29 @@ classdef JointSpherical < redmax.Joint
 		end
 		
 		%%
-		function update_(this)
+		function update_(this,deriv)
 			[R,dRdq,Rdot,dRdotdq,T,detT,dTdq,Tdot,dTdotdq] = redmax.JointSpherical.getEuler(this.chart,this.q,this.qdot); %#ok<ASGLU>
 			%fprintf(' %s\t%f\t%f %f %f\t%f %f %f\n',this.name,detT,this.q,this.qdot);
 			n = 3;
-			this.Q = eye(4);
 			this.Q(1:3,1:3) = R;
-			this.A = zeros(6);
 			this.A(1:3,1:3) = R;
 			this.A(4:6,4:6) = R;
-			this.dAdq = zeros(6,6,n);
-			this.Adot = zeros(6,6);
 			this.Adot(1:3,1:3) = Rdot;
 			this.Adot(4:6,4:6) = Rdot;
-			this.dAdotdq = zeros(6,6,n);
-			this.S = zeros(6,n);
 			this.S(1:3,1:3) = T;
-			this.dSdq = zeros(6,n,n);
-			this.Sdot = zeros(6,n);
 			this.Sdot(1:3,1:3) = Tdot;
-			this.dSdotdq = zeros(6,n,n);
-			for k = 1 : n
-				dRdqk = dRdq(:,:,k);
-				dRdotdqk = dRdotdq(:,:,k);
-				this.dAdq(1:3,1:3,k) = dRdqk;
-				this.dAdq(4:6,4:6,k) = dRdqk;
-				this.dAdotdq(1:3,1:3,k) = dRdotdqk;
-				this.dAdotdq(4:6,4:6,k) = dRdotdqk;
-				this.dSdq(1:3,:,k) = dTdq(:,:,k);
-				this.dSdotdq(1:3,:,k) = dTdotdq(:,:,k);
+			
+			if deriv
+				for k = 1 : n
+					dRdqk = dRdq(:,:,k);
+					dRdotdqk = dRdotdq(:,:,k);
+					this.dAdq(1:3,1:3,k) = dRdqk;
+					this.dAdq(4:6,4:6,k) = dRdqk;
+					this.dAdotdq(1:3,1:3,k) = dRdotdqk;
+					this.dAdotdq(4:6,4:6,k) = dRdotdqk;
+					this.dSdq(1:3,:,k) = dTdq(:,:,k);
+					this.dSdotdq(1:3,:,k) = dTdotdq(:,:,k);
+				end
 			end
 		end
 		

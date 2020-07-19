@@ -130,6 +130,7 @@ while true
 		fprintf('Newton diverged\n');
 		break;
 	end
+	% TODO: line search
 	q = q + dq;
 	if norm(g) < tol
 		% Converged
@@ -147,31 +148,35 @@ end
 %%
 function [g,G,M,f,K,D,J] = evalBDF1(q1,scene)
 h = scene.h;
+h2 = h*h;
 nr = redmax.Scene.countR();
 jroot = scene.joints{1};
 
 % Value from last time step
 [q0,qdot0] = jroot.getQ0();
+dqtmp = q1 - q0 - h*qdot0;
 
 % New values
 qdot1 = (q1 - q0)/h;
 jroot.setQ(q1,qdot1);
-jroot.update();
-[M,dMdq,f,K,D,J] = computeValues(scene);
-
-% BDF1: Newton solve for g(q)=0 with Jacobian G = dg/dq
-h2 = h*h;
-dqtmp = q1 - q0 - h*qdot0;
-g = M*dqtmp - h2*f;
-G = M - h*D - h2*K;
-for i = 1 : nr
-	G(:,i) = G(:,i) + dMdq(:,:,i)*dqtmp;
+if nargout == 1
+	jroot.update(false);
+	[M,f] = computeValues(scene);
+	g = M*dqtmp - h2*f;
+else
+	jroot.update();
+	[M,f,dMdq,K,D,J] = computeValues(scene);
+	g = M*dqtmp - h2*f;
+	G = M - h*D - h2*K;
+	for i = 1 : nr
+		G(:,i) = G(:,i) + dMdq(:,:,i)*dqtmp;
+	end
 end
 
 end
 
 %%
-function [M,dMdq,f,K,D,J] = computeValues(scene)
+function [M,f,dMdq,K,D,J] = computeValues(scene)
 nr = redmax.Scene.countR();
 broot = scene.bodies{1};
 jroot = scene.joints{1};

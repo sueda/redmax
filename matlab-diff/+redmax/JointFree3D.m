@@ -31,13 +31,13 @@ classdef JointFree3D < redmax.Joint
 		end
 		
 		%%
-		function update_(this)
+		function update_(this,deriv)
 			this.joint1.q = this.q(1:3);
 			this.joint2.q = this.q(4:6);
 			this.joint1.qdot = this.qdot(1:3);
 			this.joint2.qdot = this.qdot(4:6);
-			this.joint1.update_();
-			this.joint2.update_();
+			this.joint1.update_(deriv);
+			this.joint2.update_(deriv);
 			
 			% Extract from translational joint
 			p = this.joint1.q;
@@ -60,17 +60,6 @@ classdef JointFree3D < redmax.Joint
 				dTdotdr(:,:,k) = this.joint2.dSdotdq(1:3,:,k);
 			end
 			
-			n = 6;
-			this.Q = eye(4,4);
-			this.A = zeros(6,6);
-			this.dAdq = zeros(6,6,n);
-			this.Adot = zeros(6,6);
-			this.dAdotdq = zeros(6,6,n);
-			this.S = zeros(6,n);
-			this.dSdq = zeros(6,n,n);
-			this.Sdot = zeros(6,n);
-			this.dSdotdq = zeros(6,n,n);
-			
 			% Q and A
 			this.Q(1:3,1:3) = R;
 			this.Q(1:3,4) = p;
@@ -79,56 +68,58 @@ classdef JointFree3D < redmax.Joint
 			pbrac = se3.brac(p);
 			this.A(4:6,1:3) = pbrac*R;
 			
-			% dAdq
-			for k = 1 : 3
-				ek = zeros(3,1);
-				ek(k) = 1;
-				ekbrac = se3.brac(ek);
-				dRdrk = dRdr(:,:,k);
-				this.dAdq(1:3,1:3,3+k) = dRdrk;
-				this.dAdq(4:6,4:6,3+k) = dRdrk;
-				this.dAdq(4:6,1:3,k) = ekbrac*R;
-				this.dAdq(4:6,1:3,3+k) = pbrac*dRdrk;
-			end
-			
 			% Adot
 			pdotbrac = se3.brac(pdot);
 			this.Adot(1:3,1:3) = Rdot;
 			this.Adot(4:6,4:6) = Rdot;
 			this.Adot(4:6,1:3) = pdotbrac*R + pbrac*Rdot;
 			
-			% dAdotdq
-			for k = 1 : 3
-				ek = zeros(3,1);
-				ek(k) = 1;
-				ekbrac = se3.brac(ek);
-				dRdotdrk = dRdotdr(:,:,k);
-				this.dAdotdq(4:6,1:3,k) = ekbrac*Rdot;
-				this.dAdotdq(1:3,1:3,3+k) = dRdotdrk;
-				this.dAdotdq(4:6,4:6,3+k) = dRdotdrk;
-				this.dAdotdq(4:6,1:3,3+k) = pdotbrac*dRdr(:,:,k) + pbrac*dRdotdrk;
-			end
-			
 			% S
 			this.S(4:6,1:3) = R';
 			this.S(1:3,4:6) = T;
-			
-			% dSdq
-			for k = 1 : 3
-				dRdrk = dRdr(:,:,k);
-				this.dSdq(4:6,1:3,3+k) = dRdrk';
-				this.dSdq(1:3,4:6,3+k) = dTdr(:,:,k);
-			end
 			
 			% Sdot
 			this.Sdot(4:6,1:3) = Rdot';
 			this.Sdot(1:3,4:6) = Tdot;
 			
-			% dSdotdq
-			tmp = se3.brac(T*rdot);
-			for k = 1 : 3
-				this.dSdotdq(4:6,1:3,3+k) = -se3.brac(dTdr(:,:,k)*rdot)*R' - tmp*dRdr(:,:,k)';
-				this.dSdotdq(1:3,4:6,3+k) = dTdotdr(:,:,k);
+			if deriv
+				% dAdq
+				for k = 1 : 3
+					ek = zeros(3,1);
+					ek(k) = 1;
+					ekbrac = se3.brac(ek);
+					dRdrk = dRdr(:,:,k);
+					this.dAdq(1:3,1:3,3+k) = dRdrk;
+					this.dAdq(4:6,4:6,3+k) = dRdrk;
+					this.dAdq(4:6,1:3,k) = ekbrac*R;
+					this.dAdq(4:6,1:3,3+k) = pbrac*dRdrk;
+				end
+				
+				% dAdotdq
+				for k = 1 : 3
+					ek = zeros(3,1);
+					ek(k) = 1;
+					ekbrac = se3.brac(ek);
+					dRdotdrk = dRdotdr(:,:,k);
+					this.dAdotdq(4:6,1:3,k) = ekbrac*Rdot;
+					this.dAdotdq(1:3,1:3,3+k) = dRdotdrk;
+					this.dAdotdq(4:6,4:6,3+k) = dRdotdrk;
+					this.dAdotdq(4:6,1:3,3+k) = pdotbrac*dRdr(:,:,k) + pbrac*dRdotdrk;
+				end
+				
+				% dSdq
+				for k = 1 : 3
+					dRdrk = dRdr(:,:,k);
+					this.dSdq(4:6,1:3,3+k) = dRdrk';
+					this.dSdq(1:3,4:6,3+k) = dTdr(:,:,k);
+				end
+				
+				% dSdotdq
+				tmp = se3.brac(T*rdot);
+				for k = 1 : 3
+					this.dSdotdq(4:6,1:3,3+k) = -se3.brac(dTdr(:,:,k)*rdot)*R' - tmp*dRdr(:,:,k)';
+					this.dSdotdq(1:3,4:6,3+k) = dTdotdr(:,:,k);
+				end
 			end
 		end
 	end

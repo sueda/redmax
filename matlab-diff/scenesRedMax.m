@@ -172,17 +172,19 @@ switch(sceneID)
 		scene.joints{3}.qdot(1) = 10.0;
 	case 6
 		scene.name = 'Free2D joint';
-		scene.Hexpected(BDF1) = 1.4083333333333329e+01;
-		scene.Hexpected(BDF2) = 1.4583333333333131e+01;
-		scene.h = 1e-1;
-		scene.tEnd = 10.0;
-		scene.grav = [0 -1 0]';
+		scene.Hexpected(BDF1) = 2.0322933333333378e+04;
+		scene.Hexpected(BDF2) = 2.1283333333333332e+04;
+		scene.h = 5e-3;
+		scene.tEnd = 0.4;
+		scene.grav = [0 -980 0]';
 		scene.view = 2;
+		scene.drawHz = 100;
+		scene.plotH = true;
 		scene.waxis = 10*[-1 1 -1 1 -0.1 0.1];
 		scene.bodies{1} = redmax.BodyCuboid(density,[1 1 1]);
 		scene.joints{1} = redmax.JointFree2D([],scene.bodies{1});
 		scene.joints{1}.q = [-10 -10 0]';
-		scene.joints{1}.qdot = [2 5 1]';
+		scene.joints{1}.qdot = [50 200 20]';
 		scene.joints{1}.setJointTransform(eye(4));
 		scene.bodies{1}.setBodyTransform(eye(4));
 	case 7
@@ -273,24 +275,23 @@ switch(sceneID)
 	case 11
 		scene.name = 'Free2D with ground';
 		scene.Hexpected(BDF1) = 0;
-		scene.Hexpected(BDF2) = -7.9865525002622928e-01;
-		scene.h = 5e-2;
-		scene.tEnd = 15.0;
-		%scene.drawHz = 1/scene.h;
-		scene.grav = [0 -1 0]';
+		scene.Hexpected(BDF2) = -4.3933954811421463e+03;
+		scene.h = 1e-3;
+		scene.tEnd = 0.6;
+		scene.drawHz = 100;
+		scene.grav = [0 -980 0]';
 		scene.view = 2;
-		scene.plotH = true;
+		%scene.plotH = false;
 		scene.waxis = 3*[-1 2 0 2 -0.1 0.1];
-		scene.bodies{1} = redmax.BodyCuboid(density,[1 1 1]);
+		scene.bodies{1} = redmax.BodyCuboid(density,[3 1 1]);
 		scene.joints{1} = redmax.JointFree2D([],scene.bodies{1});
 		scene.joints{1}.q = [-2 2 0]';
-		scene.joints{1}.qdot = [0.5 2 1]';
+		scene.joints{1}.qdot = [5 70 5]';
 		scene.joints{1}.setJointTransform(eye(4));
 		scene.bodies{1}.setBodyTransform(eye(4));
 		scene.forces{1} = redmax.ForceGroundCuboid(scene.bodies{1});
 		scene.forces{1}.setTransform([se3.aaToMat([1 0 0],-pi/2),[0 0 0]'; 0 0 0 1]);
-		kn = 5e2;
-		scene.forces{1}.setStiffness(kn,scene.h*kn);
+		scene.forces{1}.setStiffness(1e6,1e2);
 		scene.forces{1}.setFriction(0.8);
 	case 100
 		scene.name = 'Adjoint BDF1';

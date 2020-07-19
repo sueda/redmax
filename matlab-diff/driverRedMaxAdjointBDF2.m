@@ -164,6 +164,7 @@ while true
 		fprintf('Newton diverged\n');
 		break;
 	end
+	% TODO: line search
 	q = q + dq;
 	if norm(g) < tol
 		% Converged
@@ -184,25 +185,32 @@ h = scene.h;
 nr = redmax.Scene.countR();
 jroot = scene.joints{1};
 
-% Value from last time step
-[q0,qdot0] = jroot.getQ0();
-
-% New values
 a = (2-sqrt(2))/2;
 ah = a*h;
 ah2 = ah*ah;
+
+% Value from last time step
+[q0,qdot0] = jroot.getQ0();
+dqtmp = qa - q0 - ah*qdot0;
+
+% New values
 qdota = (qa - q0)/ah;
 jroot.setQ(qa,qdota);
-jroot.update();
-[M,dMdq,f,K,D,J] = computeValues(scene);
 
-% SDIRK2a: Newton solve for g(q)=0 with Jacobian G = dg/dq
-dqtmp = qa - q0 - ah*qdot0;
-g = M*dqtmp - ah2*f;
-G = M - ah*D - ah2*K;
-for i = 1 : nr
-	G(:,i) = G(:,i) + dMdq(:,:,i)*dqtmp;
+if nargout == 1
+	jroot.update(false);
+	[M,f] = computeValues(scene);
+	g = M*dqtmp - ah2*f;
+else
+	jroot.update();
+	[M,f,dMdq,K,D,J] = computeValues(scene);
+	g = M*dqtmp - ah2*f;
+	G = M - ah*D - ah2*K;
+	for i = 1 : nr
+		G(:,i) = G(:,i) + dMdq(:,:,i)*dqtmp;
+	end
 end
+
 end
 
 %%
@@ -211,26 +219,33 @@ h = scene.h;
 nr = redmax.Scene.countR();
 jroot = scene.joints{1};
 
-% Values from last time step
-[q0,qdot0] = jroot.getQ0();
-qdota = jroot.getQdot1();
-
-% New values
 a = (2-sqrt(2))/2;
 ah = a*h;
 ah2 = ah*ah;
+
+% Values from last time step
+[q0,qdot0] = jroot.getQ0();
+qdota = jroot.getQdot1();
+dqtmp = q1 - q0 - (2*a-1)*h*qdot0 - 2*(1-a)*h*qdota;
+
+% New values
 qdot1 = (q1 - q0 - (1-a)*h*qdota)/ah;
 jroot.setQ(q1,qdot1);
-jroot.update();
-[M,dMdq,f,K,D,J] = computeValues(scene);
 
-% SDIRK2b: Newton solve for g(q)=0 with Jacobian G = dg/dq
-dqtmp = q1 - q0 - (2*a-1)*h*qdot0 - 2*(1-a)*h*qdota;
-g = M*dqtmp - ah2*f;
-G = M - ah*D - ah2*K;
-for i = 1 : nr
-	G(:,i) = G(:,i) + dMdq(:,:,i)*dqtmp;
+if nargout == 1
+	jroot.update(false);
+	[M,f] = computeValues(scene);
+	g = M*dqtmp - ah2*f;
+else
+	jroot.update();
+	[M,f,dMdq,K,D,J] = computeValues(scene);
+	g = M*dqtmp - ah2*f;
+	G = M - ah*D - ah2*K;
+	for i = 1 : nr
+		G(:,i) = G(:,i) + dMdq(:,:,i)*dqtmp;
+	end
 end
+
 end
 
 %%
@@ -239,28 +254,35 @@ h = scene.h;
 nr = redmax.Scene.countR();
 jroot = scene.joints{1};
 
+h2 = h*h;
+
 % Value from last time step
 [q0,qdot0] = jroot.getQ0();
 [q1,qdot1] = jroot.getQ1();
+dqtmp = q2 - (4/3)*q1 + (1/3)*q0 - (8/9)*h*qdot1 + (2/9)*h*qdot0;
 
 % New values
 qdot2 = (3/(2*h))*(q2 - (4/3)*q1 + (1/3)*q0);
 jroot.setQ(q2,qdot2);
-jroot.update();
-[M,dMdq,f,K,D,J] = computeValues(scene);
 
-% BDF2: Newton solve for g(q)=0 with Jacobian G = dg/dq
-h2 = h*h;
-dqtmp = q2 - (4/3)*q1 + (1/3)*q0 - (8/9)*h*qdot1 + (2/9)*h*qdot0;
-g = M*dqtmp - (4/9)*h2*f;
-G = M - (2/3)*h*D - (4/9)*h2*K;
-for i = 1 : nr
-	G(:,i) = G(:,i) + dMdq(:,:,i)*dqtmp;
+if nargout == 1
+	jroot.update(false);
+	[M,f] = computeValues(scene);
+	g = M*dqtmp - (4/9)*h2*f;
+else
+	jroot.update();
+	[M,f,dMdq,K,D,J] = computeValues(scene);
+	g = M*dqtmp - (4/9)*h2*f;
+	G = M - (2/3)*h*D - (4/9)*h2*K;
+	for i = 1 : nr
+		G(:,i) = G(:,i) + dMdq(:,:,i)*dqtmp;
+	end
 end
+
 end
 
 %%
-function [M,dMdq,f,K,D,J] = computeValues(scene)
+function [M,f,dMdq,K,D,J] = computeValues(scene)
 nr = redmax.Scene.countR();
 broot = scene.bodies{1};
 jroot = scene.joints{1};
