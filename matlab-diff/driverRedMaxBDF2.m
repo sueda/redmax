@@ -14,11 +14,13 @@ function driverRedMaxBDF2(sceneID,batch)
 %    9: Free3D joint
 %    10: Loop
 %    11: Free2D with ground
+%    12: Spring-damper
+%    13: Cable
 %
 %{
 % To run in batch mode, run the following:
 clear; clc;
-for sceneID = 0 : 11
+for sceneID = 0 : 13
 	driverRedMaxBDF2(sceneID,true)
 end
 %}

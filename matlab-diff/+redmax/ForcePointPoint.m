@@ -1,5 +1,5 @@
 classdef ForcePointPoint < redmax.Force
-	%ForcePointPoint A linear force between two points
+	%ForcePointPoint A linear zero rest-length force between two points
 	
 	%%
 	properties

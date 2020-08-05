@@ -14,6 +14,15 @@ classdef (Abstract) Force < handle
 		end
 		
 		%%
+		function init(this)
+			this.init_();
+			% Go to the next force
+			if ~isempty(this.next)
+				this.next.init();
+			end
+		end
+		
+		%%
 		function [fr,fm,Kr,Km,Dr,Dm] = computeValues(this,fr,fm,Kr,Km,Dr,Dm)
 			nr = redmax.Scene.countR();
 			nm = redmax.Scene.countM();
@@ -68,6 +77,10 @@ classdef (Abstract) Force < handle
 	
 	%%
 	methods (Access = protected)
+		%%
+		function init_(this) %#ok<MANU>
+		end
+		
 		%%
 		function [fr,fm,Kr,Km,Dr,Dm] = computeValues_(this,fr,fm,Kr,Km,Dr,Dm) %#ok<*INUSL>
 		end

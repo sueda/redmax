@@ -61,10 +61,9 @@ classdef Scene < handle
 				colormap('default'); % Restore colormap mode
 			end
 			njoints = length(this.joints);
-			joint0 = this.joints{1}; % Assumes joints{1} is root
 
 			% Leaf-to-root ordering is better for reducing matrix fill
-			order = joint0.getTraversalOrder();
+			order = this.joints{1}.getTraversalOrder();
 			this.joints = this.joints(order); % Reorders joints
 			%for i = 1 : njoints % DEBUG ordering
 			for i = njoints : -1 : 1
@@ -97,9 +96,9 @@ classdef Scene < handle
 				this.joints{i}.qdot1 = this.joints{i}.qdot;
 			end
 			
-			% Update all
-			joint0.update();
-			[this.qInit,this.qdotInit] = joint0.getQ();
+			% Update joints
+			this.joints{1}.update();
+			[this.qInit,this.qdotInit] = this.joints{1}.getQ();
 			
 			% Initialize bodies
 			nbodies = length(this.bodies);
@@ -110,6 +109,9 @@ classdef Scene < handle
 					this.bodies{i}.next = this.bodies{i+1}; %#ok<*SAGROW>
 				end
 			end
+			
+			% Initialize forces
+			this.forces{1}.init();
 			
 			% Other initial values
 			this.nsteps = ceil(this.tEnd/this.h);
@@ -182,6 +184,8 @@ classdef Scene < handle
 					axis(a);
 					grid on;
 					legend('T','V','H');
+					xlabel('Time');
+					ylabel('Energy');
 				end
 			end
 		end
@@ -202,12 +206,12 @@ classdef Scene < handle
 				grid on;
 				view(this.view); %#ok<CPROP>
 			end
-			timeToDraw = mod(this.t+1e-9,1/this.drawHz) < mod(this.t-this.h+2e-9,1/this.drawHz);
-			if this.drawHz > 0 && timeToDraw
+			if this.drawHz > 0 && (floor(this.t*this.drawHz) > floor((this.t-this.h)*this.drawHz))
 				cla;
 				hold on;
 				this.bodies{1}.draw();
 				this.joints{1}.draw();
+				this.forces{1}.draw();
 				if ~isempty(this.task)
 					this.task.draw();
 				end

@@ -293,6 +293,65 @@ switch(sceneID)
 		scene.forces{1}.setTransform([se3.aaToMat([1 0 0],-pi/2),[0 0 0]'; 0 0 0 1]);
 		scene.forces{1}.setStiffness(1e6,1e2);
 		scene.forces{1}.setFriction(0.8);
+	case 12
+		scene.name = 'Spring-damper';
+		scene.Hexpected(BDF1) = -2.2145412057327565e+04;
+		scene.Hexpected(BDF2) = -8.9887693524038732e+03;
+		%scene.tEnd = 10;
+		scene.plotH = false;
+		sides = [10 1 1];
+		scene.waxis = 10*[-0.5 1.5 -0.1 0.1 -1 1];
+		scene.bodies{1} = redmax.BodyCuboid(density,sides); %#ok<*SAGROW>
+		scene.joints{1} = redmax.JointRevolute([],scene.bodies{1},[0 1 0]');
+		scene.joints{1}.setJointTransform(eye(4));
+		scene.bodies{1}.setBodyTransform([eye(3),[5 0 0]'; 0 0 0 1]);
+		scene.joints{1}.q(1) = 0;
+		scene.joints{1}.qdot(1) = 0;
+		scene.bodies{2} = redmax.BodyCuboid(density,sides); %#ok<*SAGROW>
+		scene.joints{2} = redmax.JointRevolute(scene.joints{1},scene.bodies{2},[0 1 0]');
+		scene.joints{2}.setJointTransform([eye(3),[10 0 0]'; 0 0 0 1]);
+		scene.bodies{2}.setBodyTransform([eye(3),[5 0 0]'; 0 0 0 1]);
+		scene.joints{2}.q(1) = 0;
+		scene.joints{2}.qdot(1) = 0;
+		scene.forces{1} = redmax.ForceSpringDamper([],[-5 0 -5]',scene.bodies{end},[0 0 -2]');
+		scene.forces{1}.setStiffness(1e6);
+		scene.forces{1}.setDamping(1e3);
+		scene.forces{2} = redmax.ForceSpringDamper(scene.bodies{1},[0 0 2]',scene.bodies{2},[0 0 2]');
+		scene.forces{2}.setStiffness(1e6);
+		scene.forces{2}.setDamping(1e3);
+	case 13
+		scene.name = 'Cables';
+		scene.Hexpected(BDF1) = -3.1874892332895153e+04;
+		scene.Hexpected(BDF2) = -2.7872894793863266e+04;
+		%scene.tEnd = 10;
+		scene.plotH = false;
+		sides = [10 1 1];
+		scene.waxis = 10*[-0.5 1.5 -0.1 0.1 -2 0];
+		scene.view = [32 26];
+		scene.bodies{1} = redmax.BodyCuboid(density,[0.1 0.1 0.1]); %#ok<*SAGROW>
+		scene.joints{1} = redmax.JointFixed([],scene.bodies{1});
+		scene.bodies{2} = redmax.BodyCuboid(density,sides); %#ok<*SAGROW>
+		scene.joints{2} = redmax.JointRevolute(scene.joints{1},scene.bodies{2},[0 1 0]');
+		scene.joints{2}.setJointTransform(eye(4));
+		scene.bodies{2}.setBodyTransform([eye(3),[5 0 0]'; 0 0 0 1]);
+		scene.joints{2}.q(1) = pi/2;
+		scene.bodies{3} = redmax.BodyCuboid(density,sides); %#ok<*SAGROW>
+		scene.joints{3} = redmax.JointRevolute(scene.joints{2},scene.bodies{3},[0 1 0]');
+		scene.joints{3}.setJointTransform([eye(3),[10 0 0]'; 0 0 0 1]);
+		scene.bodies{3}.setBodyTransform([eye(3),[5 0 0]'; 0 0 0 1]);
+		scene.joints{3}.q(1) = -pi/2;
+		scene.bodies{4} = redmax.BodyCuboid(density,[1 1 1]); %#ok<*SAGROW>
+		scene.joints{4} = redmax.JointPrismatic(scene.joints{1},scene.bodies{4},[1 0 0]');
+		scene.joints{4}.setJointTransform([eye(3),[10 0 0]'; 0 0 0 1]);
+		scene.bodies{4}.setBodyTransform([eye(3),[0 0 0]'; 0 0 0 1]);
+		scene.joints{4}.setStiffness(1e4);
+		scene.joints{4}.setDamping(1e3);
+		scene.forces{1} = redmax.ForceCable();
+		scene.forces{1}.setStiffness(1e6);
+		scene.forces{1}.setDamping(1e3);
+		scene.forces{1}.addBodyPoint(scene.bodies{4},[0 0 0]');
+		scene.forces{1}.addBodyPoint(scene.bodies{2},[-4 0 1]');
+		scene.forces{1}.addBodyPoint(scene.bodies{3},[-4 0 1]');
 	case 100
 		scene.name = 'Adjoint BDF1';
 		%scene.grav = [0 0 0]';
