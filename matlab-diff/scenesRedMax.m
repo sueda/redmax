@@ -352,6 +352,35 @@ switch(sceneID)
 		scene.forces{1}.addBodyPoint(scene.bodies{4},[0 0 0]');
 		scene.forces{1}.addBodyPoint(scene.bodies{2},[-4 0 1]');
 		scene.forces{1}.addBodyPoint(scene.bodies{3},[-4 0 1]');
+	case 14
+		scene.name = 'Joint limits';
+		scene.Hexpected(BDF1) = -4.3935567424677353e+05;
+		scene.Hexpected(BDF2) = -3.1324585577747499e+05;
+		%scene.tEnd = 5;
+		scene.h = 1e-2;
+		%scene.drawHz = 100;
+		sides = [10 1 1];
+		nbodies = 3;
+		scene.waxis = nbodies*5*[-1 1 -1 1 -2 0];
+		for i = 1 : nbodies
+			scene.bodies{i} = redmax.BodyCuboid(density,sides); %#ok<*SAGROW>
+			if i == 1
+				scene.joints{i} = redmax.JointRevolute([],scene.bodies{i},[0 1 0]');
+				scene.joints{i}.setJointTransform([se3.aaToMat([0 1 0],pi/2),[0 0 0]'; 0 0 0 1]);
+				scene.joints{i}.q(1) = -pi/2;
+				scene.joints{i}.qdot(1) = 0;
+			else
+				scene.joints{i} = redmax.JointRevolute(scene.joints{i-1},scene.bodies{i},[0 1 0]');
+				scene.joints{i}.setJointTransform([eye(3),[10 0 0]'; 0 0 0 1]);
+				scene.joints{i}.q(1) = 0;
+				scene.joints{i}.qdot(1) = 0;
+			end
+			scene.bodies{i}.setBodyTransform([eye(3),[5 0 0]'; 0 0 0 1]);
+			% Joint limits
+			scene.joints{i}.setLimitLower(-pi/2);
+			scene.joints{i}.setLimitUpper(0);
+			scene.joints{i}.setLimitStiffness(1e8);
+		end
 	case 100
 		scene.name = 'Adjoint BDF1';
 		%scene.grav = [0 0 0]';

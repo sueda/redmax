@@ -131,16 +131,16 @@ classdef Scene < handle
 		end
 		
 		%%
-		function saveHistory(this,GL,GU,Gp,M,f,K,D,J)
+		function saveHistory(this,Hl,Hu,Hp,M,f,K,D,J)
 			[q,qdot] = this.joints{1}.getQ();
 			this.history(this.k).q = q;
 			this.history(this.k).qdot = qdot;
 			% TODO: may need to store other info (eg Euler angle chart)
 			if ~isempty(this.task)
 				% Used by the adjoint method
-				this.history(this.k).GL = GL;
-				this.history(this.k).GU = GU;
-				this.history(this.k).Gp = Gp;
+				this.history(this.k).Hl = Hl;
+				this.history(this.k).Hu = Hu;
+				this.history(this.k).Hp = Hp;
 				this.history(this.k).M = M;
 				this.history(this.k).f = f;
 				this.history(this.k).K = K;

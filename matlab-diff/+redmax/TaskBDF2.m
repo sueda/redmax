@@ -98,10 +98,10 @@ classdef (Abstract) TaskBDF2 < handle
 					yk = yk - block'*z(kk4);
 				end
 				% Solve by the diagonal
-				GL = this.scene.history(k).GL;
-				GU = this.scene.history(k).GU;
-				Gp = this.scene.history(k).Gp;
-				zkk0(Gp) = GL'\(GU'\yk);
+				Hl = this.scene.history(k).Hl;
+				Hu = this.scene.history(k).Hu;
+				Hp = this.scene.history(k).Hp;
+				zkk0(Hp) = Hl'\(Hu'\yk);
 				z(kk0) = zkk0;
 			end
  			dPdp = this.wreg*this.p' - z'*this.dgdp;

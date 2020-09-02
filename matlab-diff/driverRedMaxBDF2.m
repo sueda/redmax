@@ -16,11 +16,12 @@ function driverRedMaxBDF2(sceneID,batch)
 %    11: Free2D with ground
 %    12: Spring-damper
 %    13: Cable
+%    14: Joint limits
 %
 %{
 % To run in batch mode, run the following:
 clear; clc;
-for sceneID = 0 : 13
+for sceneID = 0 : 14
 	driverRedMaxBDF2(sceneID,true)
 end
 %}
@@ -124,47 +125,49 @@ end
 end
 
 %%
-function q = newton(evalFcn,qInit)
+function x = newton(evalFcn,xInit)
 tol = 1e-9;
-dqMax = 1e3;
-iterMax = 5*length(qInit);
-iterLsMax = 10;
+dxMax = 1e3;
+iterMax = 10*length(xInit);
+iterLsMax = 20;
 testGrad = false;
-q = qInit;
+x = xInit;
 iter = 1;
 while true
-	[g,G] = evalFcn(q);
+	[g,H] = evalFcn(x);
 	if testGrad
 		% Finite difference test
 		sqrteps = sqrt(eps); %#ok<UNRCH>
-		G_ = zeros(size(G));
-		for i = 1 : length(q)
-			q_ = q;
-			q_(i) = q_(i) + sqrteps;
-			g_ = evalFcn(q_);
-			G_(:,i) = (g_ - g)/sqrteps;
+		H_ = zeros(size(H));
+		for i = 1 : length(x)
+			x_ = x;
+			x_(i) = x_(i) + sqrteps;
+			g_ = evalFcn(x_);
+			H_(:,i) = (g_ - g)/sqrteps;
 		end
-		redmax.Scene.printError('G',G_,G);
+		redmax.Scene.printError('H',H_,H);
 	end
 	% Newton direction
-	dq = -G\g;
-	if norm(dq) > dqMax
+	dx = -H\g;
+	if norm(dx) > dxMax
 		fprintf('Newton diverged\n');
 		break;
 	end
 	% Line search
 	alpha = 1;
 	g0 = g;
-	q0 = q;
+	x0 = x;
+	f0 = 0.5*(g0'*g0);
 	iterLs = 1;
 	while true
-		q = q0 + alpha*dq;
-		g = evalFcn(q);
-		if norm(g) < norm(g0)
+		x = x0 + alpha*dx;
+		g = evalFcn(x);
+		f = 0.5*(g'*g);
+		if f < f0
 			break;
 		end
 		if iterLs >= iterLsMax
-			fprintf('Line search did not converge after %d iterations\n',iterLsMax);
+			%fprintf('Line search did not converge after %d iterations\n',iterLsMax);
 			break;
 		end
 		alpha = 0.5*alpha;
@@ -179,7 +182,7 @@ while true
 		break;
 	end
 	if iter >= iterMax
-		%fprintf('Newton did not converge after %d iterations\n',iterMax);
+		fprintf('Newton did not converge after %d iterations\n',iterMax);
 		break;
 	end
 	iter = iter + 1;
@@ -188,7 +191,7 @@ end
 end
 
 %%
-function [g,G] = evalSDIRK2a(qa,scene)
+function [g,H] = evalSDIRK2a(qa,scene)
 h = scene.h;
 nr = redmax.Scene.countR();
 jroot = scene.joints{1};
@@ -213,16 +216,16 @@ else
 	jroot.update();
 	[M,f,dMdq,K,D] = computeValues(scene);
 	g = M*dqtmp - ah2*f;
-	G = M - ah*D - ah2*K;
+	H = M - ah*D - ah2*K;
 	for i = 1 : nr
-		G(:,i) = G(:,i) + dMdq(:,:,i)*dqtmp;
+		H(:,i) = H(:,i) + dMdq(:,:,i)*dqtmp;
 	end
 end
 
 end
 
 %%
-function [g,G] = evalSDIRK2b(q1,scene)
+function [g,H] = evalSDIRK2b(q1,scene)
 h = scene.h;
 nr = redmax.Scene.countR();
 jroot = scene.joints{1};
@@ -248,16 +251,16 @@ else
 	jroot.update();
 	[M,f,dMdq,K,D] = computeValues(scene);
 	g = M*dqtmp - ah2*f;
-	G = M - ah*D - ah2*K;
+	H = M - ah*D - ah2*K;
 	for i = 1 : nr
-		G(:,i) = G(:,i) + dMdq(:,:,i)*dqtmp;
+		H(:,i) = H(:,i) + dMdq(:,:,i)*dqtmp;
 	end
 end
 
 end
 
 %%
-function [g,G] = evalBDF2(q2,scene)
+function [g,H] = evalBDF2(q2,scene)
 h = scene.h;
 nr = redmax.Scene.countR();
 jroot = scene.joints{1};
@@ -281,9 +284,9 @@ else
 	jroot.update();
 	[M,f,dMdq,K,D] = computeValues(scene);
 	g = M*dqtmp - (4/9)*h2*f;
-	G = M - (2/3)*h*D - (4/9)*h2*K;
+	H = M - (2/3)*h*D - (4/9)*h2*K;
 	for i = 1 : nr
-		G(:,i) = G(:,i) + dMdq(:,:,i)*dqtmp;
+		H(:,i) = H(:,i) + dMdq(:,:,i)*dqtmp;
 	end
 end
 

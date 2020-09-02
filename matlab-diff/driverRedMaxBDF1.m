@@ -16,11 +16,12 @@ function driverRedMaxBDF1(sceneID,batch)
 %    11: Free2D with ground (doesn't work with BDF1)
 %    12: Spring-damper
 %    13: Cable
+%    14: Joint limits
 %
 %{
 % To run in batch mode, run the following:
 clear; clc;
-for sceneID = 0 : 13
+for sceneID = 0 : 14
 	driverRedMaxBDF1(sceneID,true)
 end
 %}
@@ -90,43 +91,45 @@ end
 end
 
 %%
-function q = newton(evalFcn,qInit)
+function x = newton(evalFcn,xInit)
 tol = 1e-9;
-dqMax = 1e3;
-iterMax = 5*length(qInit);
-iterLsMax = 10;
+dxMax = 1e3;
+iterMax = 10*length(xInit);
+iterLsMax = 20;
 testGrad = false;
-q = qInit;
+x = xInit;
 iter = 1;
 while true
-	[g,G] = evalFcn(q);
+	[g,H] = evalFcn(x);
 	if testGrad
 		% Finite difference test
 		sqrteps = sqrt(eps); %#ok<UNRCH>
-		G_ = zeros(size(G));
-		for i = 1 : length(q)
-			q_ = q;
-			q_(i) = q_(i) + sqrteps;
-			g_ = evalFcn(q_);
-			G_(:,i) = (g_ - g)/sqrteps;
+		H_ = zeros(size(H));
+		for i = 1 : length(x)
+			x_ = x;
+			x_(i) = x_(i) + sqrteps;
+			g_ = evalFcn(x_);
+			H_(:,i) = (g_ - g)/sqrteps;
 		end
-		redmax.Scene.printError('G',G_,G);
+		redmax.Scene.printError('H',H_,H);
 	end
 	% Newton direction
-	dq = -G\g;
-	if norm(dq) > dqMax
+	dx = -H\g;
+	if norm(dx) > dxMax
 		fprintf('Newton diverged\n');
 		break;
 	end
 	% Line search
 	alpha = 1;
 	g0 = g;
-	q0 = q;
+	x0 = x;
+	f0 = 0.5*(g0'*g0);
 	iterLs = 1;
 	while true
-		q = q0 + alpha*dq;
-		g = evalFcn(q);
-		if norm(g) < norm(g0)
+		x = x0 + alpha*dx;
+		g = evalFcn(x);
+		f = 0.5*(g'*g);
+		if f < f0
 			break;
 		end
 		if iterLs >= iterLsMax
@@ -154,7 +157,7 @@ end
 end
 
 %%
-function [g,G] = evalBDF1(q1,scene)
+function [g,H] = evalBDF1(q1,scene)
 h = scene.h;
 h2 = h*h;
 nr = redmax.Scene.countR();
@@ -175,9 +178,9 @@ else
 	jroot.update();
 	[M,f,dMdq,K,D] = computeValues(scene);
 	g = M*dqtmp - h2*f;
-	G = M - h*D - h2*K;
+	H = M - h*D - h2*K;
 	for i = 1 : nr
-		G(:,i) = G(:,i) + dMdq(:,:,i)*dqtmp;
+		H(:,i) = H(:,i) + dMdq(:,:,i)*dqtmp;
 	end
 end
 

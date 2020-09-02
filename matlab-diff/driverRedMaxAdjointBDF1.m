@@ -102,36 +102,36 @@ end
 end
 
 %%
-function [q,GL,GU,Gp,M,f,K,D,J] = newton(evalFcn,qInit)
+function [x,Hl,Hu,Hp,M,f,K,D,J] = newton(evalFcn,xInit)
 tol = 1e-9;
-dqMax = 1e3;
-iterMax = 5*length(qInit);
+dxMax = 1e3;
+iterMax = 5*length(xInit);
 testGrad = false;
-q = qInit;
+x = xInit;
 iter = 1;
 while true
-	[g,G,M,f,K,D,J] = evalFcn(q);
+	[g,H,M,f,K,D,J] = evalFcn(x);
 	if testGrad
 		% Finite difference test
 		sqrteps = sqrt(eps); %#ok<UNRCH>
-		G_ = zeros(size(G));
-		for i = 1 : length(q)
-			q_ = q;
+		H_ = zeros(size(H));
+		for i = 1 : length(x)
+			q_ = x;
 			q_(i) = q_(i) + sqrteps;
 			g_ = evalFcn(q_);
-			G_(:,i) = (g_ - g)/sqrteps;
+			H_(:,i) = (g_ - g)/sqrteps;
 		end
-		redmax.Scene.printError('G',G_,G);
+		redmax.Scene.printError('H',H_,H);
 	end
-	% dq = -G\g;
-	[GL,GU,Gp] = lu(G,'vector');
-	dq = -(GU\(GL\g(Gp)));	
-	if norm(dq) > dqMax
+	% dx = -G\g;
+	[Hl,Hu,Hp] = lu(H,'vector');
+	dx = -(Hu\(Hl\g(Hp)));	
+	if norm(dx) > dxMax
 		fprintf('Newton diverged\n');
 		break;
 	end
 	% TODO: line search
-	q = q + dq;
+	x = x + dx;
 	if norm(g) < tol
 		% Converged
 		break;
@@ -146,7 +146,7 @@ end
 end
 
 %%
-function [g,G,M,f,K,D,J] = evalBDF1(q1,scene)
+function [g,H,M,f,K,D,J] = evalBDF1(q1,scene)
 h = scene.h;
 h2 = h*h;
 nr = redmax.Scene.countR();
@@ -167,9 +167,9 @@ else
 	jroot.update();
 	[M,f,dMdq,K,D,J] = computeValues(scene);
 	g = M*dqtmp - h2*f;
-	G = M - h*D - h2*K;
+	H = M - h*D - h2*K;
 	for i = 1 : nr
-		G(:,i) = G(:,i) + dMdq(:,:,i)*dqtmp;
+		H(:,i) = H(:,i) + dMdq(:,:,i)*dqtmp;
 	end
 end
 

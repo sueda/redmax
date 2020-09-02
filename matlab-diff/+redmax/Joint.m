@@ -17,9 +17,12 @@ classdef (Abstract) Joint < handle
 		q1        % Last position (for BDF2, q1 is k, and q0 is k-1)
 		qdot1     % Last velocity (for BDF2, qdot1 is k, and qdot0 is k-1)
 		qRest     % Rest position (for joint stiffness)
-		tau       % Joint torque
+		qLimL     % Lower limit
+		qLimU     % Upper limit
+		qLimK     % Joint limit stiffness
 		stiffness % Joint stiffness
 		damping   % Joint damping
+		tau       % Joint torque
 		I_j       % Inertia at the joint
 		V         % Twist at parent joint
 		E_pj      % Transform of this joint wrt parent joint
@@ -70,6 +73,9 @@ classdef (Abstract) Joint < handle
 			this.qdot0 = zeros(ndof,1);
 			this.q1 = zeros(ndof,1);
 			this.qdot1 = zeros(ndof,1);
+			this.qLimL = -1e8;
+			this.qLimU = 1e8;
+			this.qLimK = 1e8;
 			this.tau = zeros(ndof,1);
 			this.stiffness = 0;
 			this.damping = 0;
@@ -100,6 +106,21 @@ classdef (Abstract) Joint < handle
 		function setDamping(this,damping)
 			% Sets this joint's linear velocity damping
 			this.damping = damping;
+		end
+		
+		%%
+		function setLimitLower(this,limit)
+			this.qLimL = limit;
+		end
+		
+		%%
+		function setLimitUpper(this,limit)
+			this.qLimU = limit;
+		end
+		
+		%%
+		function setLimitStiffness(this,K)
+			this.qLimK = K;
 		end
 		
 		%%
@@ -418,6 +439,11 @@ classdef (Abstract) Joint < handle
 				rows = this.idxR;
 				% Joint torque
 				fr(rows) = fr(rows) + this.tau + this.stiffness*(this.qRest - this.q) - this.damping*this.qdot;
+				% Limits
+				hitL = this.q < this.qLimL;
+				hitU = this.q > this.qLimU;
+				fr(rows) = fr(rows) + this.qLimK*hitL.*(this.qLimL - this.q);
+				fr(rows) = fr(rows) + this.qLimK*hitU.*(this.qLimU - this.q);
 				% Go to the next joint
 				if ~isempty(this.next)
 					fr = this.next.computeForce(fr);
@@ -436,6 +462,13 @@ classdef (Abstract) Joint < handle
 				I = eye(this.ndof);
 				Kr(rows,rows) = Kr(rows,rows) - this.stiffness*I;
 				Dr(rows,rows) = Dr(rows,rows) - this.damping*I;
+				% Limits
+				hitL = this.q < this.qLimL;
+				hitU = this.q > this.qLimU;
+				fr(rows) = fr(rows) + this.qLimK*hitL.*(this.qLimL - this.q);
+				fr(rows) = fr(rows) + this.qLimK*hitU.*(this.qLimU - this.q);
+				Kr(rows,rows) = Kr(rows,rows) - (hitL*hitL').*(this.qLimK*I);
+				Kr(rows,rows) = Kr(rows,rows) - (hitU*hitU').*(this.qLimK*I);
 				% Go to the next joint
 				if ~isempty(this.next)
 					[fr,Kr,Dr] = this.next.computeForce(fr,Kr,Dr);
@@ -576,9 +609,17 @@ classdef (Abstract) Joint < handle
 				T = 0;
 				V = 0;
 			end
+			% Body
 			[T,V] = this.body.computeEnergies(grav,T,V);
+			% Joint stiffness
 			dq = this.q - this.qRest;
 			V = V + 0.5*this.stiffness*(dq'*dq);
+			% Joint limits
+			hitL = this.q < this.qLimL;
+			hitU = this.q > this.qLimU;
+			dqL = hitL.*(this.qLimL - this.q);
+			dqU = hitU.*(this.qLimU - this.q);
+			V = V + 0.5*this.qLimK*(dqL'*dqL + dqU'*dqU);
 			% Go to the next joint
 			if ~isempty(this.next)
 				[T,V] = this.next.computeEnergies(grav,T,V);
