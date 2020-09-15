@@ -20,6 +20,7 @@ classdef (Abstract) Joint < handle
 		qLimL     % Lower limit
 		qLimU     % Upper limit
 		qLimK     % Joint limit stiffness
+		qLimD     % Joint limit damping
 		stiffness % Joint stiffness
 		damping   % Joint damping
 		tau       % Joint torque
@@ -76,6 +77,7 @@ classdef (Abstract) Joint < handle
 			this.qLimL = -1e8;
 			this.qLimU = 1e8;
 			this.qLimK = 1e8;
+			this.qLimD = 0;
 			this.tau = zeros(ndof,1);
 			this.stiffness = 0;
 			this.damping = 0;
@@ -121,6 +123,11 @@ classdef (Abstract) Joint < handle
 		%%
 		function setLimitStiffness(this,K)
 			this.qLimK = K;
+		end
+		
+		%%
+		function setLimitDamping(this,D)
+			this.qLimD = D;
 		end
 		
 		%%
@@ -439,11 +446,12 @@ classdef (Abstract) Joint < handle
 				rows = this.idxR;
 				% Joint torque
 				fr(rows) = fr(rows) + this.tau + this.stiffness*(this.qRest - this.q) - this.damping*this.qdot;
-				% Limits
+				% Limits: hitL and hitU are mask vectors to indicate which
+				% component of q is hitting the limit
 				hitL = this.q < this.qLimL;
 				hitU = this.q > this.qLimU;
-				fr(rows) = fr(rows) + this.qLimK*hitL.*(this.qLimL - this.q);
-				fr(rows) = fr(rows) + this.qLimK*hitU.*(this.qLimU - this.q);
+				fr(rows) = fr(rows) + hitL.*(this.qLimK*(this.qLimL - this.q) - this.qLimD*this.qdot);
+				fr(rows) = fr(rows) + hitU.*(this.qLimK*(this.qLimU - this.q) - this.qLimD*this.qdot);
 				% Go to the next joint
 				if ~isempty(this.next)
 					fr = this.next.computeForce(fr);
@@ -465,10 +473,12 @@ classdef (Abstract) Joint < handle
 				% Limits
 				hitL = this.q < this.qLimL;
 				hitU = this.q > this.qLimU;
-				fr(rows) = fr(rows) + this.qLimK*hitL.*(this.qLimL - this.q);
-				fr(rows) = fr(rows) + this.qLimK*hitU.*(this.qLimU - this.q);
+				fr(rows) = fr(rows) + hitL.*(this.qLimK*(this.qLimL - this.q) - this.qLimD*this.qdot);
+				fr(rows) = fr(rows) + hitU.*(this.qLimK*(this.qLimU - this.q) - this.qLimD*this.qdot);
 				Kr(rows,rows) = Kr(rows,rows) - (hitL*hitL').*(this.qLimK*I);
 				Kr(rows,rows) = Kr(rows,rows) - (hitU*hitU').*(this.qLimK*I);
+				Dr(rows,rows) = Dr(rows,rows) - (hitL*hitL').*(this.qLimD*I);
+				Dr(rows,rows) = Dr(rows,rows) - (hitU*hitU').*(this.qLimD*I);
 				% Go to the next joint
 				if ~isempty(this.next)
 					[fr,Kr,Dr] = this.next.computeForce(fr,Kr,Dr);

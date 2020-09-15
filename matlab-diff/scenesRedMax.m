@@ -10,12 +10,26 @@ scene = redmax.Scene();
 density = 1.0;
 
 switch(sceneID)
+	case -2
+		scene.name = 'Single revolute';
+		%scene.grav = [0 0 0]';
+		%scene.tEnd = 0.1;
+		sides = [2 0.2 0.2];
+		scene.waxis = [-1 1 -1 1 -2 0];
+		scene.view = [0 0];
+		scene.bodies{1} = redmax.BodyCuboid(density,sides); %#ok<*SAGROW>
+		scene.joints{1} = redmax.JointRevolute([],scene.bodies{1},[0 1 0]');
+		scene.joints{1}.setJointTransform(eye(4));
+		scene.joints{1}.setGeometry(0.1,0.1);
+		scene.joints{1}.q(1) = 0;%pi/2;
+		scene.joints{1}.qdot(1) = 1;
+		scene.bodies{1}.setBodyTransform([eye(3),[1 0 0]'; 0 0 0 1]);
 	case -1
 		scene.name = 'Simpler serial chain';
 		%scene.grav = [0 0 0]';
 		%scene.tEnd = 0.1;
 		sides = [10 1 1];
-		nbodies = 2;
+		nbodies = 1;
 		scene.waxis = nbodies*5*[-1 1 -1 1 -2 0];
 		for i = 1 : nbodies
 			scene.bodies{i} = redmax.BodyCuboid(density,sides); %#ok<*SAGROW>
@@ -247,8 +261,8 @@ switch(sceneID)
 	case 10
 		scene.name = 'Loop';
 		scene.waxis = [-15 15 -1 1 -20 2];
-		scene.Hexpected(BDF1) = 1.2475343855668743e+03;
-		scene.Hexpected(BDF2) = 4.1276838094574923e+03;
+		scene.Hexpected(BDF1) = 1.2376477982839792e+03;
+		scene.Hexpected(BDF2) = 4.1146190850293169e+03;
 		scene.bodies{1} = redmax.BodyCuboid(density,[20 1  1]);
 		scene.bodies{2} = redmax.BodyCuboid(density,[ 1 1 10]);
 		scene.bodies{3} = redmax.BodyCuboid(density,[ 1 1 10]);
@@ -270,13 +284,14 @@ switch(sceneID)
 		scene.joints{4}.setJointTransform([eye(3),[  0 0 -10]'; 0 0 0 1]);
 		scene.joints{5}.setJointTransform([eye(3),[ 10 0   0]'; 0 0 0 1]);
 		scene.forces{1} = redmax.ForcePointPoint(scene.bodies{3},[0 0 -5]',scene.bodies{4},[10 0 0]');
-		scene.forces{1}.setStiffness(1e8);
+		scene.forces{1}.setStiffness(1e7);
+		scene.forces{1}.setDamping(0);
 		scene.joints{5}.qdot(1) = 5;
 	case 11
 		scene.name = 'Free2D with ground';
-		scene.Hexpected(BDF1) = 0;
-		scene.Hexpected(BDF2) = -4.3933954811421463e+03;
-		scene.h = 1e-3;
+		scene.Hexpected(BDF1) = -4.4208045000000002e+03;
+		scene.Hexpected(BDF2) = -2.7811251900394832e+03;
+		scene.h = 5e-4;
 		scene.tEnd = 0.6;
 		scene.drawHz = 100;
 		scene.grav = [0 -980 0]';
@@ -285,14 +300,15 @@ switch(sceneID)
 		scene.waxis = 3*[-1 2 0 2 -0.1 0.1];
 		scene.bodies{1} = redmax.BodyCuboid(density,[3 1 1]);
 		scene.joints{1} = redmax.JointFree2D([],scene.bodies{1});
-		scene.joints{1}.q = [-2 2 0]';
-		scene.joints{1}.qdot = [5 70 5]';
+		scene.joints{1}.q = [-1 2 0]';
+		scene.joints{1}.qdot = [5 70 2]';
 		scene.joints{1}.setJointTransform(eye(4));
 		scene.bodies{1}.setBodyTransform(eye(4));
 		scene.forces{1} = redmax.ForceGroundCuboid(scene.bodies{1});
 		scene.forces{1}.setTransform([se3.aaToMat([1 0 0],-pi/2),[0 0 0]'; 0 0 0 1]);
-		scene.forces{1}.setStiffness(1e6,1e2);
-		scene.forces{1}.setFriction(0.8);
+		scene.forces{1}.setStiffness(1e5,1e2);
+		scene.forces{1}.setDamping(3e1);
+		scene.forces{1}.setFriction(0.5);
 	case 12
 		scene.name = 'Spring-damper';
 		scene.Hexpected(BDF1) = -2.2145412057327565e+04;
@@ -354,10 +370,10 @@ switch(sceneID)
 		scene.forces{1}.addBodyPoint(scene.bodies{3},[-4 0 1]');
 	case 14
 		scene.name = 'Joint limits';
-		scene.Hexpected(BDF1) = -4.3935567424677353e+05;
-		scene.Hexpected(BDF2) = -3.1324585577747499e+05;
+		scene.Hexpected(BDF1) = -2.5928305306546572e+04;
+		scene.Hexpected(BDF2) = -1.8476279319765570e+04;
 		%scene.tEnd = 5;
-		scene.h = 1e-2;
+		scene.h = 5e-3;
 		%scene.drawHz = 100;
 		sides = [10 1 1];
 		nbodies = 3;
@@ -367,19 +383,21 @@ switch(sceneID)
 			if i == 1
 				scene.joints{i} = redmax.JointRevolute([],scene.bodies{i},[0 1 0]');
 				scene.joints{i}.setJointTransform([se3.aaToMat([0 1 0],pi/2),[0 0 0]'; 0 0 0 1]);
-				scene.joints{i}.q(1) = -pi/2;
+				scene.joints{i}.q(1) = 0;
 				scene.joints{i}.qdot(1) = 0;
 			else
 				scene.joints{i} = redmax.JointRevolute(scene.joints{i-1},scene.bodies{i},[0 1 0]');
 				scene.joints{i}.setJointTransform([eye(3),[10 0 0]'; 0 0 0 1]);
-				scene.joints{i}.q(1) = 0;
+				scene.joints{i}.q(1) = -pi/6;
 				scene.joints{i}.qdot(1) = 0;
 			end
 			scene.bodies{i}.setBodyTransform([eye(3),[5 0 0]'; 0 0 0 1]);
 			% Joint limits
 			scene.joints{i}.setLimitLower(-pi/2);
 			scene.joints{i}.setLimitUpper(0);
-			scene.joints{i}.setLimitStiffness(1e8);
+			scene.joints{i}.setLimitStiffness(1e5);
+			scene.joints{i}.setLimitDamping(1e2);
+			scene.joints{i}.setDamping(1e2);
 		end
 	case 100
 		scene.name = 'Adjoint BDF1';

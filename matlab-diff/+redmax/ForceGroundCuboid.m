@@ -9,6 +9,7 @@ classdef ForceGroundCuboid < redmax.Force
 		kn   % normal stiffness
 		kt   % tangential stiffness
 		mu   % coefficient of friction
+		kd   % damping
 	end
 	
 	%%
@@ -22,6 +23,7 @@ classdef ForceGroundCuboid < redmax.Force
 			this.kn = 1;
 			this.kt = 0;
 			this.mu = 0;
+			this.kd = 0;
 		end
 		
 		%%
@@ -33,6 +35,11 @@ classdef ForceGroundCuboid < redmax.Force
 		function setStiffness(this,kn,kt)
 			this.kn = kn;
 			this.kt = kt;
+		end
+		
+		%%
+		function setDamping(this,kd)
+			this.kd = kd;
 		end
 		
 		%%
@@ -77,7 +84,6 @@ classdef ForceGroundCuboid < redmax.Force
 			for i = 1 : 8
 				xli = xl(1:3,i);
 				xwi = xw(1:3,i);
-				RNRxl = RNR*xli;
 				xlbrac = se3.brac(xli);
 				% penetration depth
 				d = ng'*(xwi - xg);
@@ -86,14 +92,23 @@ classdef ForceGroundCuboid < redmax.Force
 					continue
 				end
 				
-				% Contact force
-				fc = -this.kn*ng*d;
+				% Contact point world velocity
 				G = se3.Gamma(xli);
+				Gphi = G*phi;
+				vwi = R*Gphi;
+				
+				% Contact force
+				fc = -this.kn*ng*d - this.kd*N*vwi;
 				fm(idxM) = fm(idxM) + G'*R'*fc;
 				if nargout > 2
 					% Contact stiffness
-					tmp = -[e1b*RNRxl,e2b*RNRxl,e3b*RNRxl] - RNR*xlbrac + pxgtmp;
-					Km(idxM,idxM) = Km(idxM,idxM) - this.kn*G'*[tmp RNR];
+					RNRxl = RNR*xli;
+					RNRGphi = RNR*Gphi;
+					Gphibrac = se3.brac(Gphi);
+					tmp1 = -[e1b*RNRxl,e2b*RNRxl,e3b*RNRxl] - RNR*xlbrac + pxgtmp;
+					tmp2 = -[e1b*RNRGphi,e2b*RNRGphi,e3b*RNRGphi] - RNR*Gphibrac;
+					Km(idxM,idxM) = Km(idxM,idxM) - this.kn*G'*[tmp1 RNR] - this.kd*G'*[tmp2 zeros(3)];
+					Dm(idxM,idxM) = Dm(idxM,idxM) - this.kd*G'*RNR*G;
 				end
 				
 				% Friction force
@@ -191,22 +206,33 @@ classdef ForceGroundCuboid < redmax.Force
 			kn = 1e3;
 			h = 1e-2;
 			force.setStiffness(kn,h*kn);
+			force.setDamping(0.5);
 			force.setFriction(0.5);
 			E = se3.randE();
 			cuboid.E_wi = E;
 			cuboid.phi = randn(6,1);
-			[~,fm,~,Km] = force.computeValues();
+			[~,fm,~,Km,~,Dm] = force.computeValues();
 			% Finite difference test
 			Km_ = zeros(6);
+			Dm_ = zeros(6);
 			for i = 1 : 6
 				phi = zeros(6,1);
 				phi(i) = 1;
 				E_ = E*se3.exp(sqrt(eps)*phi);
 				cuboid.E_wi = E_;
 				[~,fm_] = force.computeValues();
+				cuboid.E_wi = E;
 				Km_(:,i) = (fm_ - fm)/sqrt(eps);
+				phi = cuboid.phi;
+				phi_ = phi;
+				phi_(i) = phi_(i) + sqrt(eps);
+				cuboid.phi = phi_;
+				[~,fm_] = force.computeValues();
+				cuboid.phi = phi;
+				Dm_(:,i) = (fm_ - fm)/sqrt(eps);
 			end
 			redmax.Scene.printError('Km',Km_,Km);
+			redmax.Scene.printError('Dm',Dm_,Dm);
 		end
 		
 		%%

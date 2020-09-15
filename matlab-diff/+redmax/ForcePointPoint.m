@@ -4,6 +4,7 @@ classdef ForcePointPoint < redmax.Force
 	%%
 	properties
 		stiffness
+		damping
 		body1 % Body to apply the wrench to (null implies world)
 		body2 % Body to apply the wrench to (null implies world)
 		x_1  % Application point in local coords
@@ -29,11 +30,17 @@ classdef ForcePointPoint < redmax.Force
 			this.x_1 = x_1;
 			this.x_2 = x_2;
 			this.stiffness = 1;
+			this.damping = 0;
 		end
 		
 		%%
 		function setStiffness(this,stiffness)
 			this.stiffness = stiffness;
+		end
+		
+		%%
+		function setDamping(this,damping)
+			this.damping = damping;
 		end
 	end
 	
@@ -45,65 +52,65 @@ classdef ForcePointPoint < redmax.Force
 				E1 = this.body1.E_wi;
 				R1 = E1(1:3,1:3);
 				p1 = E1(1:3,4);
-				xl1 = this.x_1;
-				xl1brac = se3.brac(xl1);
+				xl1 = this.x_1; % local position to apply the force to
 				xw1 = R1*xl1 + p1; % point transformed to world
+				G1 = se3.Gamma(xl1);
+				vl1 = G1*this.body1.phi; % local velocity
+				vw1 = R1*vl1; % velocity transformed to world
 			else
 				xw1 = this.x_1;
+				vw1 = zeros(3,1);
 			end
 			if ~isempty(this.body2)
 				E2 = this.body2.E_wi;
 				R2 = E2(1:3,1:3);
 				p2 = E2(1:3,4);
 				xl2 = this.x_2; % local position to apply the force to
-				xl2brac = se3.brac(xl2);
 				xw2 = R2*xl2 + p2; % point transformed to world
+				G2 = se3.Gamma(xl2);
+				vl2 = G2*this.body2.phi; % local velocity
+				vw2 = R2*vl2; % velocity transformed to world
 			else
 				xw2 = this.x_2;
+				vw2 = zeros(3,1);
 			end
 			dx = xw2 - xw1;
+			dv = vw2 - vw1;
 			I = eye(3);
-			k = this.stiffness;
+			Z = zeros(3);
+			ks = this.stiffness;
+			kd = this.damping;
+			f = (ks*dx + kd*dv);
+			% Force vector
 			if ~isempty(this.body1)
-				idxM1 = this.body1.idxM;
-				fm(idxM1(1:3)) = fm(idxM1(1:3)) + k*xl1brac*R1'*dx;
-				fm(idxM1(4:6)) = fm(idxM1(4:6)) + k*R1'*dx;
+				idx1 = this.body1.idxM;
+				fm(idx1) = fm(idx1) + G1'*R1'*f;
 			end
 			if ~isempty(this.body2)
-				idxM2 = this.body2.idxM;
-				fm(idxM2(1:3)) = fm(idxM2(1:3)) - k*xl2brac*R2'*dx;
-				fm(idxM2(4:6)) = fm(idxM2(4:6)) - k*R2'*dx;
+				idx2 = this.body2.idxM;
+				fm(idx2) = fm(idx2) - G2'*R2'*f;
 			end
 			if nargout == 2
 				return
 			end
+			% Stiffness and damping matrices
 			if ~isempty(this.body1)
-				idxM1 = this.body1.idxM;
-				% 1,1
-				Km(idxM1(1:3),idxM1(1:3)) = Km(idxM1(1:3),idxM1(1:3)) - k*xl1brac*se3.brac(R1'*(p1 - xw2));
-				Km(idxM1(1:3),idxM1(4:6)) = Km(idxM1(1:3),idxM1(4:6)) - k*xl1brac;
-				Km(idxM1(4:6),idxM1(1:3)) = Km(idxM1(4:6),idxM1(1:3)) - k*se3.brac(R1'*(p1 - xw2));
-				Km(idxM1(4:6),idxM1(4:6)) = Km(idxM1(4:6),idxM1(4:6)) - k*I;
+				Km(idx1,idx1) = Km(idx1,idx1) + ks*G1'*[se3.brac(R1'*(xw2 - p1)), -I];
+				Km(idx1,idx1) = Km(idx1,idx1) + kd*G1'*[se3.brac(R1'*vw2), Z];
+				Dm(idx1,idx1) = Dm(idx1,idx1) - kd*(G1'*G1);
 			end
 			if ~isempty(this.body2)
-				idxM2 = this.body2.idxM;
-				% 2,2
-				Km(idxM2(1:3),idxM2(1:3)) = Km(idxM2(1:3),idxM2(1:3)) - k*xl2brac*se3.brac(R2'*(p2 - xw1));
-				Km(idxM2(1:3),idxM2(4:6)) = Km(idxM2(1:3),idxM2(4:6)) - k*xl2brac;
-				Km(idxM2(4:6),idxM2(1:3)) = Km(idxM2(4:6),idxM2(1:3)) - k*se3.brac(R2'*(p2 - xw1));
-				Km(idxM2(4:6),idxM2(4:6)) = Km(idxM2(4:6),idxM2(4:6)) - k*I;
+				Km(idx2,idx2) = Km(idx2,idx2) + ks*G2'*[se3.brac(R2'*(xw1 - p2)), -I];
+				Km(idx2,idx2) = Km(idx2,idx2) + kd*G2'*[se3.brac(R2'*vw1), Z];
+				Dm(idx2,idx2) = Dm(idx2,idx2) - kd*(G2'*G2);
 			end
 			if ~isempty(this.body1) && ~isempty(this.body2)
-				% 1,2
-				Km(idxM1(1:3),idxM2(1:3)) = Km(idxM1(1:3),idxM2(1:3)) - k*xl1brac*R1'*R2*xl2brac;
-				Km(idxM1(1:3),idxM2(4:6)) = Km(idxM1(1:3),idxM2(4:6)) + k*xl1brac*R1'*R2;
-				Km(idxM1(4:6),idxM2(1:3)) = Km(idxM1(4:6),idxM2(1:3)) - k*R1'*R2*xl2brac;
-				Km(idxM1(4:6),idxM2(4:6)) = Km(idxM1(4:6),idxM2(4:6)) + k*R1'*R2;
-				% 2,1
-				Km(idxM2(1:3),idxM1(1:3)) = Km(idxM2(1:3),idxM1(1:3)) - k*xl2brac*R2'*R1*xl1brac;
-				Km(idxM2(1:3),idxM1(4:6)) = Km(idxM2(1:3),idxM1(4:6)) + k*xl2brac*R2'*R1;
-				Km(idxM2(4:6),idxM1(1:3)) = Km(idxM2(4:6),idxM1(1:3)) - k*R2'*R1*xl1brac;
-				Km(idxM2(4:6),idxM1(4:6)) = Km(idxM2(4:6),idxM1(4:6)) + k*R2'*R1;
+				Km(idx1,idx2) = Km(idx1,idx2) + ks*G1'*R1'*R2*[-se3.brac(xl2), I];
+				Km(idx2,idx1) = Km(idx2,idx1) + ks*G2'*R2'*R1*[-se3.brac(xl1), I];
+				Km(idx1,idx2) = Km(idx1,idx2) - kd*G1'*R1'*R2*[se3.brac(vl2), Z];
+				Km(idx2,idx1) = Km(idx2,idx1) - kd*G2'*R2'*R1*[se3.brac(vl1), Z];
+				Dm(idx1,idx2) = Dm(idx1,idx2) + kd*G1'*R1'*R2*G2;
+				Dm(idx2,idx1) = Dm(idx2,idx1) + kd*G2'*R2'*R1*G1;
 			end
 		end
 		
@@ -155,34 +162,56 @@ classdef ForcePointPoint < redmax.Force
 			cuboid1.idxM = 1:6;
 			cuboid2.idxM = 7:12;
 			redmax.Scene.countM(12);
-			x1 = randn(3,1);
-			x2 = randn(3,1);
-			force = redmax.ForcePointPoint(cuboid1,x1,cuboid2,x2);
-			force.setStiffness(1e3);
 			E1 = se3.randE();
 			E2 = se3.randE();
+			phi1 = randn(6,1);
+			phi2 = randn(6,1);
+			x1 = randn(3,1);
+			x2 = randn(3,1);
 			cuboid1.E_wi = E1;
 			cuboid2.E_wi = E2;
-			[~,fm,~,Km] = force.computeValues();
+			cuboid1.phi = phi1;
+			cuboid2.phi = phi2;
+			force = redmax.ForcePointPoint(cuboid1,x1,cuboid2,x2);
+			force.setStiffness(0e3);
+			force.setDamping(1e2);
+			[~,fm,~,Km,~,Dm] = force.computeValues();
 			% Finite difference test
 			Km_ = zeros(12);
+			Dm_ = zeros(12);
 			for i = 1 : 12
+				% K
 				phi = zeros(6,1);
 				if i <= 6
 					phi(i) = 1;
 					E1_ = E1*se3.exp(sqrt(eps)*phi);
 					cuboid1.E_wi = E1_;
-					cuboid2.E_wi = E2;
 				else
 					phi(i-6) = 1;
 					E2_ = E2*se3.exp(sqrt(eps)*phi);
-					cuboid1.E_wi = E1;
 					cuboid2.E_wi = E2_;
 				end
 				[~,fm_] = force.computeValues();
+				cuboid1.E_wi = E1;
+				cuboid2.E_wi = E2;
 				Km_(:,i) = (fm_ - fm)/sqrt(eps);
+				% D
+				if i <= 6
+					phi1_ = phi1;
+					phi1_(i) = phi1_(i) + sqrt(eps);
+					cuboid1.phi = phi1_;
+				else
+					phi2_ = phi2;
+					phi2_(i-6) = phi2_(i-6) + sqrt(eps);
+					cuboid2.phi = phi2_;
+				end
+				[~,fm_] = force.computeValues();
+				cuboid1.phi = phi1;
+				cuboid2.phi = phi2;
+				Dm_(:,i) = (fm_ - fm)/sqrt(eps);
 			end
 			redmax.Scene.printError('Km',Km_,Km);
+			redmax.Scene.printError('Dm',Dm_,Dm);
 		end
 	end
 end
