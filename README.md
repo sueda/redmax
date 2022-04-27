@@ -2,6 +2,8 @@
 
 **NEW**: We now have an _analytically differentiable_ version! See the the [notes](notes.pdf) and the [reference MATLAB implementation](matlab-diff).
 
+Redmax was also used for [differentiable hand simulation](http://diffhand.csail.mit.edu), which was presented at RSS 2021. The associated [github repository](https://github.com/eanswer/DiffHand) contains the C++ implementation of redmax with Python bindings.
+
 
 ### Contents
 
