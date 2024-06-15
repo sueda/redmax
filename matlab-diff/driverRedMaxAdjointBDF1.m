@@ -79,7 +79,7 @@ for k = 0 : nsteps-1
 	
 	% Compute new state
 	q1 = q0 + h*qdot0; % initial guess
-	[q1,GL,GU,Gp,M,f,K,D,J] = newton(@(q1)evalBDF1(q1,scene),q1);
+	[q1,GL,GU,Gp,M,f,K,D,J,dJdq] = newton(@(q1)evalBDF1(q1,scene),q1);
 	qdot1 = (q1 - q0)/h;
 	
 	% Save new state
@@ -94,7 +94,7 @@ for k = 0 : nsteps-1
 	scene.k = k + 1;
 	
 	% End of step
-	scene.saveHistory(GL,GU,Gp,M,f,K,D,J);
+	scene.saveHistory(GL,GU,Gp,M,f,K,D,J,dJdq);
 	scene.draw();
 end
 %fprintf('%d steps\n',nsteps);
@@ -102,7 +102,7 @@ end
 end
 
 %%
-function [x,Hl,Hu,Hp,M,f,K,D,J] = newton(evalFcn,xInit)
+function [x,Hl,Hu,Hp,M,f,K,D,J,dJdq] = newton(evalFcn,xInit)
 tol = 1e-9;
 dxMax = 1e3;
 iterMax = 5*length(xInit);
@@ -110,7 +110,7 @@ testGrad = false;
 x = xInit;
 iter = 1;
 while true
-	[g,H,M,f,K,D,J] = evalFcn(x);
+	[g,H,M,f,K,D,J,dJdq] = evalFcn(x);
 	if testGrad
 		% Finite difference test
 		sqrteps = sqrt(eps); %#ok<UNRCH>
@@ -146,7 +146,7 @@ end
 end
 
 %%
-function [g,H,M,f,K,D,J] = evalBDF1(q1,scene)
+function [g,H,M,f,K,D,J,dJdq] = evalBDF1(q1,scene)
 h = scene.h;
 h2 = h*h;
 nr = redmax.Scene.countR();
@@ -165,7 +165,7 @@ if nargout == 1
 	g = M*dqtmp - h2*f;
 else
 	jroot.update();
-	[M,f,dMdq,K,D,J] = computeValues(scene);
+	[M,f,dMdq,K,D,J,dJdq] = computeValues(scene);
 	g = M*dqtmp - h2*f;
 	H = M - h*D - h2*K;
 	for i = 1 : nr
@@ -176,13 +176,15 @@ end
 end
 
 %%
-function [M,f,dMdq,K,D,J] = computeValues(scene)
+function [M,f,dMdq,K,D,J,dJdq] = computeValues(scene)
 nr = redmax.Scene.countR();
 broot = scene.bodies{1};
 jroot = scene.joints{1};
 froot = scene.forces{1};
 
 qdot = jroot.getQdot();
+nm = redmax.Scene.countM();
+dJdq = zeros(nm,nr,nr);
 if nargout == 2
 	[J,Jdot] = jroot.computeJacobian();
 	[Mm,fm] = broot.computeMassGrav(scene.grav);

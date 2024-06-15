@@ -90,6 +90,13 @@ classdef TaskBDF1PointPos < redmax.TaskBDF1
 				R = E(1:3,1:3);
 				dxdqm(:,this.body.idxM) = R*se3.Gamma(this.xlocal);
 				J = this.scene.history(k).J;
+
+                nr = redmax.Scene.countR();
+	            for i = 1 : nr
+		            dJdqi = this.scene.history(k).dJdq(:,:,i);
+                    J(:,i) =  J(:,i) + dJdqi*q;
+                end
+
 				this.dPdq{k} = J'*dxdqm'*dx*wp;
 			else
 				this.dPdq{k} = zeros(nr,1);

@@ -131,7 +131,7 @@ classdef Scene < handle
 		end
 		
 		%%
-		function saveHistory(this,Hl,Hu,Hp,M,f,K,D,J)
+		function saveHistory(this,Hl,Hu,Hp,M,f,K,D,J,dJdq)
 			[q,qdot] = this.joints{1}.getQ();
 			this.history(this.k).q = q;
 			this.history(this.k).qdot = qdot;
@@ -146,6 +146,7 @@ classdef Scene < handle
 				this.history(this.k).K = K;
 				this.history(this.k).D = D;
 				this.history(this.k).J = J;
+				this.history(this.k).dJdq = dJdq;
 			end
 			if ~isempty(this.task)
 				% Used by the adjoint method
